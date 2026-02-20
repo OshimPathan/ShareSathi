@@ -56,13 +56,30 @@ class NepseService:
 
     @staticmethod
     async def get_historical_data(symbol: str) -> Optional[Dict[str, Any]]:
+        import random
+        import hashlib
+        from datetime import datetime, timedelta
+        
+        seed_value = int(hashlib.sha256(symbol.encode('utf-8')).hexdigest(), 16) % 10**8
+        random.seed(seed_value)
+        
         history = []
         base_price = random.uniform(200, 1500)
-        for i in range(30):
-            base_price += random.uniform(-5, 5)
-            history.append({
-                "date": f"2026-01-{i%30+1:02d}",
-                "close": round(base_price, 2),
-                "volume": random.randint(5000, 20000)
-            })
+        start_date = datetime.now() - timedelta(days=130)  # to get ~90 trading days
+        days_added = 0
+        current_date = start_date
+        
+        while days_added < 90:
+            if current_date.weekday() <= 4:  # Mon-Fri
+                base_price += random.uniform(-15, 15)
+                if base_price < 10: base_price = 10
+                history.append({
+                    "date": current_date.strftime("%Y-%m-%d"),
+                    "close": round(base_price, 2),
+                    "volume": random.randint(5000, 50000)
+                })
+                days_added += 1
+            current_date += timedelta(days=1)
+            
+        random.seed() # reset seed
         return {"history": history}

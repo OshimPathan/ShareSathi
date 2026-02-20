@@ -10,6 +10,7 @@ export const StockDetail = () => {
     const { symbol } = useParams();
     const [details, setDetails] = useState<any>(null);
     const [history, setHistory] = useState<any[]>([]);
+    const [aiPrediction, setAiPrediction] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // Trading States
@@ -31,14 +32,16 @@ export const StockDetail = () => {
         if (!symbol) return;
         setIsLoading(true);
         try {
-            const [detailRes, historyRes, walletRes] = await Promise.all([
+            const [detailRes, historyRes, walletRes, aiRes] = await Promise.all([
                 api.get(`/stocks/${symbol}`),
                 api.get(`/stocks/${symbol}/history`),
-                api.get("/portfolio/wallet")
+                api.get("/portfolio/wallet"),
+                api.get(`/ai/predict/${symbol}`)
             ]);
             setDetails(detailRes.data.company);
             setHistory(historyRes.data.history || []);
             setBalance(walletRes.data.balance);
+            setAiPrediction(aiRes.data);
         } catch (error) {
             console.error("Failed to fetch stock details", error);
         } finally {
@@ -78,6 +81,30 @@ export const StockDetail = () => {
         }
     };
 
+    const combinedChartData = useMemo(() => {
+        // Create an array mapping historical points
+        const combinedData = history.map((h: any) => ({ ...h }));
+        const forecastKey = "forecast_close";
+
+        // If prediction exists, append it
+        if (aiPrediction && aiPrediction["7_day_forecast"]) {
+            // Anchor point: the last historical close needs the 'forecast_close' set to itself to link the lines
+            if (combinedData.length > 0) {
+                combinedData[combinedData.length - 1][forecastKey] = combinedData[combinedData.length - 1].close;
+            }
+
+            const forecastPoints = aiPrediction["7_day_forecast"].map((f: any) => ({
+                date: f.date,
+                [forecastKey]: f.predicted_price
+            }));
+
+            return [...combinedData, ...forecastPoints];
+        }
+
+        return combinedData;
+    }, [history, aiPrediction]);
+
+
     if (isLoading) {
         return <div className="p-8 text-center animate-pulse text-slate-400">Loading {symbol} details...</div>;
     }
@@ -113,12 +140,12 @@ export const StockDetail = () => {
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Price History (30 Days)</CardTitle>
+                            <CardTitle>Historical Price & 7-Day ARIMA Forecast</CardTitle>
                         </CardHeader>
                         <CardContent className="h-80">
-                            {history.length > 0 ? (
+                            {combinedChartData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={history} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                                    <AreaChart data={combinedChartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor={isPositive ? "#10b981" : "#f43f5e"} stopOpacity={0.3} />
@@ -135,42 +162,88 @@ export const StockDetail = () => {
                                         <Area
                                             type="monotone"
                                             dataKey="close"
+                                            name="Historical Close"
                                             stroke={isPositive ? "#10b981" : "#f43f5e"}
                                             strokeWidth={2}
                                             fillOpacity={1}
                                             fill="url(#colorPrice)"
+                                            connectNulls
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="forecast_close"
+                                            name="Predicted Close"
+                                            stroke="#3b82f6"
+                                            strokeWidth={2}
+                                            strokeDasharray="5 5"
+                                            fillOpacity={0}
+                                            connectNulls
                                         />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="h-full flex justify-center items-center text-slate-500 italic">No historical data available</div>
+                                <div className="h-full flex justify-center items-center text-slate-500 italic">No mathematical data available</div>
                             )}
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Volume</CardTitle>
-                        </CardHeader>
-                        <CardContent className="h-48">
-                            {history.length > 0 ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={history} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} hide />
-                                        <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }}
-                                            cursor={{ fill: '#334155', opacity: 0.4 }}
-                                        />
-                                        <Bar dataKey="volume" fill="#3b82f6" opacity={0.8} radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="h-full flex justify-center items-center text-slate-500 italic">No volume data available</div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>AI Inference Insights</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {aiPrediction?.error ? (
+                                    <div className="text-rose-400 text-sm mt-4">{aiPrediction.error}</div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                            <span className="text-slate-400 text-sm">Risk Profile</span>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${aiPrediction?.risk_classification === 'High' ? 'bg-rose-500/10 text-rose-500' : aiPrediction?.risk_classification === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                                {aiPrediction?.risk_classification || "Evaluating..."}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-400">Model Engine</span>
+                                            <span className="font-mono text-slate-200">{aiPrediction?.model_used || "ARIMA"}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-400">Confidence Score</span>
+                                            <span className="font-mono text-blue-400">{(aiPrediction?.ai_confidence_score * 100).toFixed(0)}%</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-400">Annual Volatility</span>
+                                            <span className="font-mono text-rose-400">{aiPrediction?.volatility_percentage}%</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Volume Data</CardTitle>
+                            </CardHeader>
+                            <CardContent className="h-44">
+                                {history.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={history} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                            <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} hide />
+                                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }}
+                                                cursor={{ fill: '#334155', opacity: 0.4 }}
+                                            />
+                                            <Bar dataKey="volume" fill="#3b82f6" opacity={0.8} radius={[4, 4, 0, 0]} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="h-full flex justify-center items-center text-slate-500 italic">No volume data available</div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
                 {/* Right Column - Trading & Stats */}
