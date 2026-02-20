@@ -13,6 +13,25 @@ async def read_summary() -> Dict[str, Any]:
 async def read_live_market() -> Dict[str, Any]:
     return await MarketService.get_live()
 
+@router.get("/depth/{symbol}")
+async def read_market_depth(symbol: str) -> Dict[str, Any]:
+    return await MarketService.get_market_depth(symbol)
+
+@router.get("/history/{symbol}")
+async def read_stock_history(symbol: str) -> Dict[str, Any]:
+    data = await MarketService.get_stock_history(symbol)
+    if not data:
+        return {"history": []}
+    return data
+
+@router.get("/fundamentals/{symbol}")
+async def read_stock_fundamentals(symbol: str) -> Dict[str, Any]:
+    return await MarketService.get_fundamentals(symbol)
+
+@router.get("/forecast/{symbol}")
+async def read_stock_forecast(symbol: str) -> Dict[str, Any]:
+    return await MarketService.get_ai_forecast(symbol)
+
 @router.get("/test-apify")
 async def test_apify() -> Dict[str, Any]:
     return {

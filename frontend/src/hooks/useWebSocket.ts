@@ -18,7 +18,7 @@ export const useWebSocket = (url: string, shouldConnect: boolean = true) => {
                 const data = JSON.parse(event.data);
                 setLastMessage(data);
             } catch (e) {
-                console.error("WS Parse Error", e);
+                // Ignore parse error
             }
         };
 

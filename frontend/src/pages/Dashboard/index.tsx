@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import useWebSocket from "../../hooks/useWebSocket";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 
@@ -12,15 +12,11 @@ export const Dashboard = () => {
     const summary = lastMessage?.summary?.summary;
     const liveMarket = lastMessage?.live?.live_market || [];
 
-    // Derive Gainers and Losers
-    const sortedMarket = useMemo(() => {
-        if (!liveMarket.length) return { gainers: [], losers: [] };
-        const sorted = [...liveMarket].sort((a, b) => b.percentageChange - a.percentageChange);
-        return {
-            gainers: sorted.slice(0, 5),
-            losers: sorted.slice(-5).reverse()
-        };
-    }, [liveMarket]);
+    // Destructure new data from WebSocket summary
+    const topGainers = lastMessage?.summary?.topGainers || [];
+    const topLosers = lastMessage?.summary?.topLosers || [];
+    const topTurnovers = lastMessage?.summary?.topTurnovers || [];
+    const subIndices = lastMessage?.summary?.subIndices || [];
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -72,21 +68,21 @@ export const Dashboard = () => {
             </div>
 
             {/* Gainers / Losers Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-emerald-400">Top Gainers</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
-                            {sortedMarket.gainers.length === 0 ? (
+                            {topGainers.length === 0 ? (
                                 <div className="text-sm text-slate-400 py-4 text-center italic">Waiting for market data...</div>
                             ) : (
-                                sortedMarket.gainers.map((stock: any) => (
-                                    <div key={stock.symbol} className="flex justify-between items-center text-sm">
+                                topGainers.map((stock: any) => (
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2 last:border-0 last:pb-0">
                                         <span className="font-bold text-slate-200">{stock.symbol}</span>
                                         <div className="text-right">
-                                            <div className="font-mono">{stock.lastTradedPrice.toFixed(2)}</div>
+                                            <div className="font-mono">{stock.ltp.toFixed(2)}</div>
                                             <div className="text-emerald-500 font-mono text-xs">+{stock.percentageChange.toFixed(2)}%</div>
                                         </div>
                                     </div>
@@ -102,14 +98,14 @@ export const Dashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
-                            {sortedMarket.losers.length === 0 ? (
+                            {topLosers.length === 0 ? (
                                 <div className="text-sm text-slate-400 py-4 text-center italic">Waiting for market data...</div>
                             ) : (
-                                sortedMarket.losers.map((stock: any) => (
-                                    <div key={stock.symbol} className="flex justify-between items-center text-sm">
+                                topLosers.map((stock: any) => (
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2 last:border-0 last:pb-0">
                                         <span className="font-bold text-slate-200">{stock.symbol}</span>
                                         <div className="text-right">
-                                            <div className="font-mono">{stock.lastTradedPrice.toFixed(2)}</div>
+                                            <div className="font-mono">{stock.ltp.toFixed(2)}</div>
                                             <div className="text-rose-500 font-mono text-xs">{stock.percentageChange.toFixed(2)}%</div>
                                         </div>
                                     </div>
@@ -118,6 +114,41 @@ export const Dashboard = () => {
                         </div>
                     </CardContent>
                 </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-blue-400">Top Turnovers</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {topTurnovers.length === 0 ? (
+                                <div className="text-sm text-slate-400 py-4 text-center italic">Waiting for market data...</div>
+                            ) : (
+                                topTurnovers.map((stock: any) => (
+                                    <div key={stock.symbol} className="flex justify-between items-center text-sm border-b border-slate-800/50 pb-2 last:border-0 last:pb-0">
+                                        <span className="font-bold text-slate-200">{stock.symbol}</span>
+                                        <div className="text-right">
+                                            <div className="font-mono text-slate-300">{(stock.turnover / 100000).toFixed(2)} Lakhs</div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Sub-Indices Carousel/Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {subIndices.map((index: any) => (
+                    <div key={index.sector} className="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3 hover:bg-slate-800 transition-colors">
+                        <div className="text-xs text-slate-400 truncate mb-1" title={index.sector}>{index.sector}</div>
+                        <div className="font-mono font-bold text-slate-200">{index.value.toFixed(2)}</div>
+                        <div className={`font-mono text-xs mt-1 ${index.change >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {index.change > 0 ? '+' : ''}{index.change.toFixed(2)}
+                        </div>
+                    </div>
+                ))}
             </div>
 
             {/* All Stocks Table */}

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, TrendingUp, Briefcase, LineChart, Settings } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Briefcase, LineChart, Settings, Star } from "lucide-react";
 import { cn } from "../../utils/cn";
 
 export const Sidebar = ({ className }: { className?: string }) => {
@@ -7,6 +7,7 @@ export const Sidebar = ({ className }: { className?: string }) => {
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { name: "Market Live", href: "/trade", icon: TrendingUp },
         { name: "Portfolio", href: "/portfolio", icon: Briefcase },
+        { name: "Watchlist", href: "/watchlist", icon: Star },
         { name: "Analytics", href: "/stock/NABIL", icon: LineChart }, // Sample route
     ];
 

@@ -29,8 +29,12 @@ class PortfolioService:
             current_value = p.quantity * current_price
             pnl = current_value - investment
             
+            funds = await NepseService.get_fundamentals(p.symbol)
+            sector = funds.get("sector", "Others")
+            
             assets.append({
                 "symbol": p.symbol,
+                "sector": sector,
                 "quantity": p.quantity,
                 "average_buy_price": p.average_buy_price,
                 "current_price": current_price,

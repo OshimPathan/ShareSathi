@@ -17,3 +17,15 @@ class MarketService:
     @staticmethod
     async def get_stock_history(symbol: str) -> Optional[Dict[str, Any]]:
         return await NepseService.get_historical_data(symbol)
+
+    @staticmethod
+    async def get_market_depth(symbol: str) -> Dict[str, Any]:
+        return await NepseService.get_market_depth(symbol)
+
+    @staticmethod
+    async def get_fundamentals(symbol: str) -> Dict[str, Any]:
+        return await NepseService.get_fundamentals(symbol)
+
+    @staticmethod
+    async def get_ai_forecast(symbol: str) -> Dict[str, Any]:
+        return await NepseService.get_ai_forecast(symbol)

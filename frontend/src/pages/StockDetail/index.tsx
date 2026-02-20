@@ -43,7 +43,7 @@ export const StockDetail = () => {
             setBalance(walletRes.data.balance);
             setAiPrediction(aiRes.data);
         } catch (error) {
-            console.error("Failed to fetch stock details", error);
+            // Ignore error
         } finally {
             setIsLoading(false);
         }

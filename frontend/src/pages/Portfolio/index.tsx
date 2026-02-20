@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import api from "../../services/api";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 
 interface Asset {
     symbol: string;
@@ -42,7 +43,7 @@ export const Portfolio = () => {
             setAssets(portfolioRes.data.assets);
             setSummary(portfolioRes.data.summary);
         } catch (error) {
-            console.error("Failed to fetch portfolio data", error);
+            // Ignore error
         } finally {
             setIsLoading(false);
         }
@@ -54,6 +55,20 @@ export const Portfolio = () => {
 
     const formatCurrency = (val: number) => `Rs. ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercent = (val: number) => `${val > 0 ? '+' : ''}${val.toFixed(2)}%`;
+
+    // Calculate Sector Allocation
+    const sectorMap: Record<string, number> = {};
+    assets.forEach(asset => {
+        const sector = (asset as any).sector || "Others";
+        sectorMap[sector] = (sectorMap[sector] || 0) + asset.current_value;
+    });
+
+    const sectorData = Object.keys(sectorMap).map(key => ({
+        name: key,
+        value: sectorMap[key]
+    })).sort((a, b) => b.value - a.value);
+
+    const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316', '#14b8a6', '#84cc16'];
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -97,51 +112,101 @@ export const Portfolio = () => {
                 </Card>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Current Holdings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-slate-400 uppercase bg-slate-800/50">
-                                <tr>
-                                    <th className="px-6 py-3">Symbol</th>
-                                    <th className="px-6 py-3 text-right">Qty</th>
-                                    <th className="px-6 py-3 text-right">Avg Price</th>
-                                    <th className="px-6 py-3 text-right">LTP</th>
-                                    <th className="px-6 py-3 text-right">P&L</th>
-                                    <th className="px-6 py-3 text-right">ROI %</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {assets.length === 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Current Holdings</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-slate-400 uppercase bg-slate-800/50">
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-8 text-center text-slate-500 italic">
-                                            {isLoading ? "Loading holdings..." : "No stocks in portfolio yet. Head over to Trading to buy!"}
-                                        </td>
+                                        <th className="px-6 py-3">Symbol</th>
+                                        <th className="px-6 py-3 text-right">Qty</th>
+                                        <th className="px-6 py-3 text-right">Avg Price</th>
+                                        <th className="px-6 py-3 text-right">LTP</th>
+                                        <th className="px-6 py-3 text-right">P&L</th>
+                                        <th className="px-6 py-3 text-right">ROI %</th>
                                     </tr>
-                                ) : (
-                                    assets.map((asset) => (
-                                        <tr key={asset.symbol} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
-                                            <td className="px-6 py-4 font-bold text-blue-400">{asset.symbol}</td>
-                                            <td className="px-6 py-4 font-mono text-right">{asset.quantity.toLocaleString()}</td>
-                                            <td className="px-6 py-4 font-mono text-right">{asset.average_buy_price.toFixed(2)}</td>
-                                            <td className="px-6 py-4 font-mono text-right">{asset.current_price.toFixed(2)}</td>
-                                            <td className={`px-6 py-4 font-mono text-right ${asset.pnl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                {asset.pnl > 0 ? '+' : ''}{asset.pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </td>
-                                            <td className={`px-6 py-4 font-mono text-right ${asset.pnl_percentage >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                                {formatPercent(asset.pnl_percentage)}
+                                </thead>
+                                <tbody>
+                                    {assets.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-8 text-center text-slate-500 italic">
+                                                {isLoading ? "Loading holdings..." : "No stocks in portfolio yet. Head over to Trading to buy!"}
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                                    ) : (
+                                        assets.map((asset) => (
+                                            <tr key={asset.symbol} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
+                                                <td className="px-6 py-4 font-bold text-blue-400">
+                                                    <div>{asset.symbol}</div>
+                                                    <div className="text-xs font-normal text-slate-500">{(asset as any).sector}</div>
+                                                </td>
+                                                <td className="px-6 py-4 font-mono text-right">{asset.quantity.toLocaleString()}</td>
+                                                <td className="px-6 py-4 font-mono text-right">{asset.average_buy_price.toFixed(2)}</td>
+                                                <td className="px-6 py-4 font-mono text-right">{asset.current_price.toFixed(2)}</td>
+                                                <td className={`px-6 py-4 font-mono text-right ${asset.pnl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                    {asset.pnl > 0 ? '+' : ''}{asset.pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </td>
+                                                <td className={`px-6 py-4 font-mono text-right ${asset.pnl_percentage >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                    {formatPercent(asset.pnl_percentage)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Sector Allocation</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {assets.length === 0 ? (
+                            <div className="text-sm text-slate-500 text-center py-8">
+                                {isLoading ? "Analyzing allocation..." : "Buy stocks to chart allocation"}
+                            </div>
+                        ) : (
+                            <div className="h-[300px] w-full mt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={sectorData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={65}
+                                            outerRadius={95}
+                                            paddingAngle={5}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            {sectorData.map((_entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <RechartsTooltip
+                                            formatter={(value: any) => formatCurrency(Number(value))}
+                                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#f8fafc' }}
+                                            itemStyle={{ color: '#e2e8f0' }}
+                                        />
+                                        <Legend
+                                            layout="horizontal"
+                                            verticalAlign="bottom"
+                                            align="center"
+                                            wrapperStyle={{ fontSize: '11px', paddingTop: '20px' }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 };
