@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Nepse API
     NEPSE_API_TIMEOUT: int = 10
 
+    # Apify
+    APIFY_API_KEY: str | None = None
+
     model_config = SettingsConfigDict(
         env_file=".env", 
         env_file_encoding="utf-8",
