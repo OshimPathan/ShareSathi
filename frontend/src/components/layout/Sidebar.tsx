@@ -12,11 +12,14 @@ export const Sidebar = ({ className }: { className?: string }) => {
 
     return (
         <aside className={cn("flex flex-col", className)}>
-            <div className="p-6 border-b border-slate-700">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                    ShareSathi
-                </h1>
-                <p className="text-xs text-slate-400 mt-1">AI Stock Analytics</p>
+            <div className="p-6 border-b border-slate-700 flex items-center gap-3">
+                <img src="/logo.png" alt="ShareSathi Logo" className="w-10 h-10 object-contain rounded-md bg-white p-0.5" />
+                <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent leading-none">
+                        ShareSathi
+                    </h1>
+                    <p className="text-xs text-slate-400 mt-1">AI Stock Analytics</p>
+                </div>
             </div>
 
             <nav className="flex-1 px-4 py-6 space-y-2">

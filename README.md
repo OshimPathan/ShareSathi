@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://via.placeholder.com/150/0b0f19/3b82f6?text=ShareSathi" alt="ShareSathi Logo" width="120" height="120">
+  <img src="frontend/public/logo.png" alt="ShareSathi Logo" width="120" height="120">
   <br/>
   <h1>🚀 ShareSathi</h1>
   <p><b>Your AI-Powered Nepalese Stock Market Companion</b></p>
