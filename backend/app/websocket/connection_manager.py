@@ -32,8 +32,13 @@ class ConnectionManager:
         while True:
             if self.active_connections:
                 try:
-                    data = await MarketService.get_live()
-                    await self.broadcast(data)
+                    live_data = await MarketService.get_live()
+                    summary_data = await MarketService.get_summary()
+                    payload = {
+                        "live": live_data,
+                        "summary": summary_data
+                    }
+                    await self.broadcast(payload)
                 except Exception as e:
                     logger.error(f"Error in broadcast loop: {e}")
             await asyncio.sleep(5)
