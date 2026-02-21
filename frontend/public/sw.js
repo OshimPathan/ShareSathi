@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'sharesathi-v1';
+const CACHE_NAME = 'sharesathi-v2';
 const STATIC_ASSETS = [
   '/',
   '/logo.png',
@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network-first for API/data, cache-first for static assets
+// Fetch: network-first for API/data, stale-while-revalidate for assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -36,7 +36,21 @@ self.addEventListener('fetch', (event) => {
   // API calls → network only (real-time data must be fresh)
   if (url.pathname.startsWith('/api') || url.pathname.includes('insforge')) return;
 
-  // Static assets → stale-while-revalidate
+  // Hashed JS/CSS bundles → cache-first (immutable filenames)
+  if (url.pathname.startsWith('/assets/') && /\.[a-f0-9]{8,}\.(js|css)$/.test(url.pathname)) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        const response = await fetch(request);
+        if (response.ok) cache.put(request, response.clone());
+        return response;
+      })
+    );
+    return;
+  }
+
+  // Everything else → stale-while-revalidate
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
       const cached = await cache.match(request);

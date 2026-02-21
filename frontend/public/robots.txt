@@ -1,0 +1,15 @@
+# ShareSathi Robots.txt
+# https://sharesathi.com
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /trade
+Disallow: /portfolio
+Disallow: /watchlist
+Disallow: /profile
+Disallow: /admin
+Disallow: /referral
+Disallow: /api/
+
+Sitemap: https://sharesathi.com/sitemap.xml

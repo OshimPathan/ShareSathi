@@ -9,6 +9,10 @@ import { DashboardSkeleton } from './components/ui/Skeleton';
 import Landing from './pages/Landing';
 import Login from './pages/Auth/Login';
 
+// Auth route wrappers
+const RegisterPage = () => <Login initialMode="register" />;
+const ForgotPasswordPage = () => <Login initialMode="forgot" />;
+
 // Lazy-load everything else
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const StockDetail = lazy(() => import('./pages/StockDetail'));
@@ -56,6 +60,8 @@ function App() {
         {/* Public Pages */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />

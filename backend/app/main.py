@@ -8,6 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import settings
+
+# Validate production safety at import time
+settings.validate_production()
+
 from app.api.router import api_router
 from app.websocket.market_ws import router as ws_router
 from app.database.connection import engine
@@ -124,6 +128,18 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' https:; "
+            "connect-src 'self' https://*.insforge.app wss://*.insforge.app https://www.google-analytics.com; "
+            "frame-ancestors 'none'"
+        )
+        # HSTS — instruct browsers to always use HTTPS (1 year)
+        if os.getenv("ENVIRONMENT") in ("production", "staging"):
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
 app.add_middleware(SecurityHeadersMiddleware)

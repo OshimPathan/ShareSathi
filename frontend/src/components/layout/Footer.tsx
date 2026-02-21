@@ -27,7 +27,7 @@ export const Footer = () => {
                                 <a href="https://github.com/OshimPathan" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-mero-teal text-slate-400 hover:text-white flex items-center justify-center transition-all duration-300">
                                     <Github className="w-4 h-4" />
                                 </a>
-                                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-mero-teal text-slate-400 hover:text-white flex items-center justify-center transition-all duration-300">
+                                <a href="https://linkedin.com/in/oshimpathan" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-mero-teal text-slate-400 hover:text-white flex items-center justify-center transition-all duration-300">
                                     <Linkedin className="w-4 h-4" />
                                 </a>
                             </div>
@@ -38,6 +38,8 @@ export const Footer = () => {
                             <h4 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Platform</h4>
                             <div className="space-y-2.5 text-sm text-slate-400">
                                 <Link to="/market" className="block hover:text-mero-teal transition-colors">Live Market</Link>
+                                <Link to="/screener" className="block hover:text-mero-teal transition-colors">Stock Screener</Link>
+                                <Link to="/leaderboard" className="block hover:text-mero-teal transition-colors">Leaderboard</Link>
                                 <Link to="/news" className="block hover:text-mero-teal transition-colors">News</Link>
                                 <Link to="/ipo" className="block hover:text-mero-teal transition-colors">IPO</Link>
                                 <Link to="/pricing" className="block hover:text-mero-teal transition-colors">Pricing</Link>

@@ -21,7 +21,7 @@
   <meta property="og:url" content="https://sharesathi.com" />
   <meta property="og:title" content="ShareSathi — Paper Trading & NEPSE Analytics" />
   <meta property="og:description" content="Practice stock trading risk-free with real NEPSE data. Live market data, portfolio tracking, and AI insights for Nepalese investors." />
-  <meta property="og:image" content="https://sharesathi.com/og-image.png" />
+  <meta property="og:image" content="https://sharesathi.com/logo.png" />
   <meta property="og:site_name" content="ShareSathi" />
   <meta property="og:locale" content="en_US" />
 
@@ -30,7 +30,7 @@
   <meta name="twitter:url" content="https://sharesathi.com" />
   <meta name="twitter:title" content="ShareSathi — Paper Trading & NEPSE Analytics" />
   <meta name="twitter:description" content="Practice stock trading risk-free with real NEPSE data. Nepal's paper trading platform." />
-  <meta name="twitter:image" content="https://sharesathi.com/og-image.png" />
+  <meta name="twitter:image" content="https://sharesathi.com/logo.png" />
 
   <!-- Theme Color -->
   <meta name="theme-color" content="#238b96" />
@@ -58,17 +58,31 @@
   }
   </script>
 
-  <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <!-- Google Analytics — only loads when a real GA ID is configured -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
+    (function() {
+      var GA_ID = window.__GA_ID__ || '';
+      if (!GA_ID || GA_ID.indexOf('XXXX') !== -1) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+    })();
   </script>
 </head>
 
 <body>
+  <noscript>
+    <div style="padding:2rem;text-align:center;font-family:sans-serif">
+      <h1>ShareSathi</h1>
+      <p>JavaScript is required to run this application. Please enable JavaScript in your browser settings.</p>
+    </div>
+  </noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
   <script>

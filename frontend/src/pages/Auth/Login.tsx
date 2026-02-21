@@ -3,12 +3,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import useAuthStore from "../../store/authStore";
 
-export const Login = () => {
+export const Login = ({ initialMode }: { initialMode?: 'login' | 'register' | 'forgot' } = {}) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { login, register, loginWithOAuth, sendResetPasswordEmail, exchangeResetPasswordToken, resetPassword } = useAuthStore();
 
-    const [isLogin, setIsLogin] = useState(location.state?.register ? false : true);
+    const [isLogin, setIsLogin] = useState(
+        initialMode === 'register' ? false : (location.state?.register ? false : true)
+    );
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,7 +19,7 @@ export const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // Forgot password flow
-    const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [showForgotPassword, setShowForgotPassword] = useState(initialMode === 'forgot');
     const [forgotEmail, setForgotEmail] = useState("");
     const [forgotMessage, setForgotMessage] = useState("");
     const [forgotStep, setForgotStep] = useState<'email' | 'code' | 'newPassword'>('email');

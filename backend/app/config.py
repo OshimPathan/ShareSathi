@@ -39,4 +39,20 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+    def validate_production(self) -> None:
+        """Call at startup to ensure production-unsafe defaults are overridden."""
+        import os
+        env = os.getenv("ENVIRONMENT", "development")
+        if env in ("production", "staging"):
+            if "dev-secret" in self.SECRET_KEY or "change" in self.SECRET_KEY.lower():
+                raise RuntimeError(
+                    "FATAL: SECRET_KEY contains default/dev value. "
+                    "Set a strong random SECRET_KEY env var for production."
+                )
+            if "sqlite" in self.DATABASE_URL:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "WARNING: Using SQLite in %s. Set DATABASE_URL to PostgreSQL.", env
+                )
+
 settings = Settings()
