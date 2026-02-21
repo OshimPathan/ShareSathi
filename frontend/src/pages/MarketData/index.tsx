@@ -58,10 +58,10 @@ export const MarketDataPage = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden animate-slide-up" style={{ opacity: 0, animationFillMode: 'forwards' }}>
                         <div className="bg-mero-teal text-white flex justify-between items-center px-6 py-3 border-b border-mero-darkTeal">
                             <h3 className="font-bold tracking-wide uppercase">{getTitle()}</h3>
-                            <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
+                            <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-full shadow-sm">
                                 As of {lastUpdated || '...'}
                             </span>
                         </div>
@@ -87,7 +87,7 @@ export const MarketDataPage = () => {
                                         <tbody>
                                             {data.map((stock, idx) => (
                                                 <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-3 font-bold text-blue-700 hover:underline cursor-pointer">{stock.symbol}</td>
+                                                    <td className="px-6 py-3 font-bold text-mero-teal hover:underline cursor-pointer">{stock.symbol}</td>
                                                     <td className="px-6 py-3 font-mono text-right font-medium text-slate-800">{Number(stock.ltp).toFixed(2)}</td>
 
                                                     {type === 'turnovers' ? (

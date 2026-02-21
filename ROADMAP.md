@@ -1,7 +1,7 @@
 # ShareSathi — Startup Roadmap
 
 > Paper Trading & NEPSE Analytics Platform for Nepal
-> Last updated: Feb 2026
+> Last updated: Jul 2025
 
 ---
 
@@ -51,36 +51,39 @@ Become Nepal's #1 stock market learning platform — empowering beginner to inte
 
 ---
 
-## Phase 3: Growth Infrastructure (IN PROGRESS)
+## Phase 3: Growth Infrastructure (COMPLETED)
 
 **Goal:** Production deployment, payments, monitoring, user experience
 
 | # | Item | Status | Priority |
 |---|------|--------|----------|
-| 3.1 | SEO meta tags + Open Graph for social sharing | 🔄 Building | P0 |
-| 3.2 | execute_trade RPC function in InsForge | 🔄 Building | P0 |
-| 3.3 | Sentry error monitoring (frontend + backend) | 🔄 Building | P0 |
-| 3.4 | Google Analytics integration | 🔄 Building | P1 |
-| 3.5 | New user onboarding welcome flow | 🔄 Building | P1 |
-| 3.6 | Khalti/eSewa payment integration stub | 🔄 Building | P1 |
-| 3.7 | Admin dashboard (users, trades, subscriptions) | 🔄 Building | P1 |
-| 3.8 | Production deployment guide | 🔄 Building | P0 |
+| 3.1 | SEO meta tags + Open Graph for social sharing | ✅ Done | P0 |
+| 3.2 | execute_trade RPC function in InsForge | ✅ Done | P0 |
+| 3.3 | Sentry error monitoring (frontend + backend) | ✅ Done | P0 |
+| 3.4 | Google Analytics integration | ✅ Done | P1 |
+| 3.5 | New user onboarding welcome flow | ✅ Done | P1 |
+| 3.6 | Khalti/eSewa payment integration stub | ✅ Done | P1 |
+| 3.7 | Admin dashboard (users, trades, subscriptions) | ✅ Done | P1 |
+| 3.8 | Production deployment guide | ✅ Done | P0 |
 
 ---
 
-## Phase 4: Revenue & Scale (PLANNED — Q2 2026)
+## Phase 4: Revenue & Scale (IN PROGRESS)
 
 **Goal:** First paying users, real revenue
 
-| # | Item | Target |
+| # | Item | Status |
 |---|------|--------|
-| 4.1 | Khalti/eSewa live payment processing | March 2026 |
-| 4.2 | Premium feature gating enforced (watchlist limits, daily trade caps) | March 2026 |
-| 4.3 | Email notifications (trade confirmations, price alerts, weekly digest) | March 2026 |
-| 4.4 | Push notifications (mobile web) | April 2026 |
-| 4.5 | Referral program ("Invite friends, get 1 month Basic free") | April 2026 |
-| 4.6 | Custom domain + SSL (sharesathi.com) | March 2026 |
-| 4.7 | CDN for static assets | April 2026 |
+| 4.1 | Khalti/eSewa live payment processing | ⬜ Planned |
+| 4.2 | Premium feature gating enforced (watchlist limits, daily trade caps) | ✅ Done |
+| 4.3 | Code splitting & lazy route loading | ✅ Done |
+| 4.4 | Full UI/UX redesign (glassmorphism, animations, responsive) | ✅ Done |
+| 4.5 | Profile page with subscription tier display + upgrade CTA | ✅ Done |
+| 4.6 | Email notifications (trade confirmations, price alerts, weekly digest) | ⬜ Planned |
+| 4.7 | Push notifications (mobile web) | ⬜ Planned |
+| 4.8 | Referral program ("Invite friends, get 1 month Basic free") | ⬜ Planned |
+| 4.9 | Custom domain + SSL (sharesathi.com) | ⬜ Planned |
+| 4.10 | CDN for static assets | ⬜ Planned |
 
 ---
 

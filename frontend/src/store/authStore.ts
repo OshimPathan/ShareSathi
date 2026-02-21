@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import insforge from '../lib/insforge';
+import { useSubscriptionStore, PLAN_FEATURES } from './subscriptionStore';
 
 interface User {
     id: string;
@@ -64,6 +65,8 @@ export const useAuthStore = create<AuthState>((set) => ({
                 isAuthenticated: true,
                 isInitialized: true,
             });
+            // Initialize subscription tier after successful auth restore
+            useSubscriptionStore.getState().initialize();
         } catch {
             set({ user: null, token: null, isAuthenticated: false, isInitialized: true });
         } finally {
@@ -91,6 +94,8 @@ export const useAuthStore = create<AuthState>((set) => ({
             token: data.accessToken,
             isAuthenticated: true,
         });
+        // Initialize subscription tier after login
+        useSubscriptionStore.getState().initialize();
     },
 
     register: async (email: string, password: string, fullName?: string) => {
@@ -144,6 +149,8 @@ export const useAuthStore = create<AuthState>((set) => ({
             token: null,
             isAuthenticated: false,
         });
+        // Reset subscription to free on logout
+        useSubscriptionStore.setState({ tier: 'free', features: PLAN_FEATURES.free });
     },
 
     verifyEmail: async (email: string, otp: string) => {

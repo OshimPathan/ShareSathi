@@ -3,6 +3,7 @@
 // All data operations go through these functions.
 // ============================================================
 import insforge from '../lib/insforge';
+import { useSubscriptionStore } from '../store/subscriptionStore';
 import type {
   Stock,
   MarketSummary,
@@ -301,6 +302,22 @@ export async function executeTrade(
   if (!session?.session?.user) return { success: false, message: 'Not authenticated' };
   const userId = session.session.user.id;
 
+  // ── Premium gate: check daily trade limit ──
+  const sub = useSubscriptionStore.getState();
+  const maxTrades = sub.getLimit('maxDailyTrades');
+  if (maxTrades !== -1) {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const { data: todayTrades } = await insforge.database
+      .from('transactions')
+      .select('id')
+      .eq('user_id', userId)
+      .gte('timestamp', `${today}T00:00:00`);
+    const todayCount = (todayTrades as unknown[] | null)?.length ?? 0;
+    if (todayCount >= maxTrades) {
+      return { success: false, message: `Daily trade limit reached (${maxTrades}). Upgrade your plan for more trades.` };
+    }
+  }
+
   // Get stock price
   const stock = await getStockBySymbol(symbol);
   if (!stock) return { success: false, message: 'Stock not found' };
@@ -397,6 +414,20 @@ export async function addToWatchlist(symbol: string): Promise<{ success: boolean
   const { data: session } = await insforge.auth.getCurrentSession();
   if (!session?.session?.user) return { success: false, message: 'Not authenticated' };
   const userId = session.session.user.id;
+
+  // ── Premium gate: check watchlist limit ──
+  const sub = useSubscriptionStore.getState();
+  const maxWatchlist = sub.getLimit('maxWatchlist');
+  if (maxWatchlist !== -1) {
+    const { data: countData } = await insforge.database
+      .from('watchlist')
+      .select('id')
+      .eq('user_id', userId);
+    const currentCount = (countData as unknown[] | null)?.length ?? 0;
+    if (currentCount >= maxWatchlist) {
+      return { success: false, message: `Watchlist limit reached (${maxWatchlist}). Upgrade your plan for more.` };
+    }
+  }
 
   const { error } = await insforge.database
     .from('watchlist')

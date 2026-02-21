@@ -1,36 +1,53 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
-import Dashboard from './pages/Dashboard';
-import StockDetail from './pages/StockDetail';
-import Portfolio from './pages/Portfolio';
-import Trading from './pages/Trading';
-import Watchlist from './pages/Watchlist';
-import Login from './pages/Auth/Login';
-import VerifyEmail from './pages/Auth/VerifyEmail';
+
+// Eager-load the landing page for fast first paint
 import Landing from './pages/Landing';
-import About from './pages/InfoPages/About';
-import Contact from './pages/InfoPages/Contact';
-import Disclaimer from './pages/Legal/Disclaimer';
-import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
-import TermsOfService from './pages/Legal/TermsOfService';
-import MarketDataPage from './pages/MarketData';
-import MarketPage from './pages/Market';
-import NewsPage from './pages/News';
-import IpoPage from './pages/IPO';
-import AnnouncementsPage from './pages/Announcements';
-import ReportsPage from './pages/Reports';
-import ServicesPage from './pages/Services';
-import PortfolioInfoPage from './pages/PortfolioInfo';
-import Profile from './pages/Profile';
-import Pricing from './pages/Pricing';
-import AdminDashboard from './pages/Admin';
-import NotFoundPage from './pages/NotFound';
+import Login from './pages/Auth/Login';
+
+// Lazy-load everything else
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const StockDetail = lazy(() => import('./pages/StockDetail'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Trading = lazy(() => import('./pages/Trading'));
+const Watchlist = lazy(() => import('./pages/Watchlist'));
+const VerifyEmail = lazy(() => import('./pages/Auth/VerifyEmail'));
+const About = lazy(() => import('./pages/InfoPages/About'));
+const Contact = lazy(() => import('./pages/InfoPages/Contact'));
+const Disclaimer = lazy(() => import('./pages/Legal/Disclaimer'));
+const PrivacyPolicy = lazy(() => import('./pages/Legal/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/Legal/TermsOfService'));
+const MarketDataPage = lazy(() => import('./pages/MarketData'));
+const MarketPage = lazy(() => import('./pages/Market'));
+const NewsPage = lazy(() => import('./pages/News'));
+const IpoPage = lazy(() => import('./pages/IPO'));
+const AnnouncementsPage = lazy(() => import('./pages/Announcements'));
+const ReportsPage = lazy(() => import('./pages/Reports'));
+const ServicesPage = lazy(() => import('./pages/Services'));
+const PortfolioInfoPage = lazy(() => import('./pages/PortfolioInfo'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const AdminDashboard = lazy(() => import('./pages/Admin'));
+const NotFoundPage = lazy(() => import('./pages/NotFound'));
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-3 border-mero-teal border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-slate-400">Loading...</span>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
         {/* Public Pages */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
@@ -65,7 +82,8 @@ function App() {
 
         {/* 404 Catch-All */}
         <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
