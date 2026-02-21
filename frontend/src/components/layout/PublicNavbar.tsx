@@ -60,7 +60,7 @@ export const PublicNavbar = () => {
             </div>
 
             {/* Main Navigation (Teal) */}
-            <nav className="bg-mero-teal w-full text-white px-4 lg:px-20 flex flex-col md:flex-row justify-between items-center py-2 shadow-sm sticky top-0 z-50 gap-3 md:gap-0">
+            <nav className="bg-mero-teal w-full text-white px-4 lg:px-20 flex flex-col md:flex-row justify-between items-center py-2 shadow-sm sticky top-0 z-50 gap-3 md:gap-0" aria-label="Main navigation">
                 <div className="hidden md:flex items-center gap-6 text-sm font-medium w-auto overflow-x-auto pb-0 scrollbar-hide shrink-0">
                     {navItems.map((item) => (
                         <NavLink

@@ -1,0 +1,38 @@
+{
+  "name": "ShareSathi — Nepal Paper Trading",
+  "short_name": "ShareSathi",
+  "description": "Practice stock trading risk-free with real NEPSE data. Portfolio analytics, live market data, and AI insights.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#238b96",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "education"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "Open your trading dashboard"
+    },
+    {
+      "name": "Trade",
+      "url": "/trade",
+      "description": "Execute paper trades"
+    },
+    {
+      "name": "Market",
+      "url": "/market",
+      "description": "View live NEPSE market data"
+    }
+  ]
+}

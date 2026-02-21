@@ -76,7 +76,7 @@ export const Navbar = ({ className }: { className?: string }) => {
                     </Link>
 
                     {/* Desktop Nav Links */}
-                    <nav className="hidden md:flex items-center gap-1 mx-6">
+                    <nav className="hidden md:flex items-center gap-1 mx-6" aria-label="Main navigation">
                         {navItems.map((item) => (
                             <NavLink
                                 key={item.to}
@@ -127,6 +127,8 @@ export const Navbar = ({ className }: { className?: string }) => {
                             <button
                                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                                 className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                aria-label="Notifications"
+                                aria-expanded={isNotificationsOpen}
                             >
                                 <Bell className="w-5 h-5" />
                                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
@@ -171,6 +173,8 @@ export const Navbar = ({ className }: { className?: string }) => {
                             <button
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+                                aria-label="Account menu"
+                                aria-expanded={isProfileOpen}
                             >
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-mero-teal to-mero-darkTeal flex items-center justify-center text-white text-xs font-bold">
                                     {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
@@ -210,6 +214,8 @@ export const Navbar = ({ className }: { className?: string }) => {
                         <button
                             onClick={() => setIsMobileOpen(!isMobileOpen)}
                             className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+                            aria-label="Toggle mobile menu"
+                            aria-expanded={isMobileOpen}
                         >
                             {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
