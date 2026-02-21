@@ -8,6 +8,7 @@ import { useAuthStore } from "../../store/authStore";
 import { getStockBySymbol, getStockHistory, getWallet, executeTrade } from "../../services/db";
 import type { Stock, HistoricalPrice } from "../../types";
 import { ArrowUpRight, ArrowDownRight, Zap, BarChart3, Activity, ShieldCheck, Info, LogIn, Loader2 } from "lucide-react";
+import { StockDetailSkeleton } from "../../components/ui/Skeleton";
 
 export const StockDetail = () => {
     const { symbol } = useParams();
@@ -77,10 +78,7 @@ export const StockDetail = () => {
     if (isLoading) {
         return (
             <PublicLayout>
-                <div className="flex flex-col items-center justify-center py-32 text-slate-400 gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-mero-teal" />
-                    <p className="text-sm">Loading {symbol} details...</p>
-                </div>
+                <StockDetailSkeleton />
             </PublicLayout>
         );
     }
@@ -98,13 +96,13 @@ export const StockDetail = () => {
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 animate-slide-up">
                 <div>
                     <div className="flex items-center gap-3">
-                        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{details?.symbol || symbol}</h1>
+                        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">{details?.symbol || symbol}</h1>
                         <span className="text-[10px] font-semibold bg-mero-teal/10 text-mero-teal px-2 py-0.5 rounded-full">{details?.sector || "Sector"}</span>
                     </div>
                     <p className="text-slate-500 mt-1 text-sm">{details?.company_name || "Unknown Company"}</p>
                 </div>
                 <div className="text-right animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
-                    <div className="text-3xl font-extrabold font-mono text-slate-900">Rs. {currentPrice.toFixed(2)}</div>
+                    <div className="text-3xl font-extrabold font-mono text-slate-900 dark:text-white">Rs. {currentPrice.toFixed(2)}</div>
                     <div className={`inline-flex items-center gap-1 text-sm font-bold mt-1 px-2 py-0.5 rounded-full ${isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'}`}>
                         {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                         {Math.abs(pointChange).toFixed(2)} ({Math.abs(pctChange).toFixed(2)}%)
@@ -234,9 +232,9 @@ export const StockDetail = () => {
                                         { label: "Turnover", value: `Rs. ${Number(details.turnover).toLocaleString()}` },
                                         { label: "Prev Close", value: `Rs. ${Number(details.previous_close).toLocaleString()}` },
                                     ].map((stat) => (
-                                        <div key={stat.label} className="bg-slate-50 border border-slate-200/80 p-3 rounded-xl hover:shadow-sm transition-shadow">
+                                <div key={stat.label} className="bg-slate-50 border border-slate-200/80 p-3 rounded-xl hover:shadow-sm transition-shadow dark:bg-slate-700/50 dark:border-slate-600/50">
                                             <p className="text-[11px] text-slate-400 font-medium">{stat.label}</p>
-                                            <p className="text-sm font-bold text-slate-800 mt-1 font-mono">{stat.value}</p>
+                                            <p className="text-sm font-bold text-slate-800 mt-1 font-mono dark:text-slate-200">{stat.value}</p>
                                         </div>
                                     ))}
                                 </div>

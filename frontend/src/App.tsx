@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
+import ErrorBoundary from './components/ui/ErrorBoundary';
+import { DashboardSkeleton } from './components/ui/Skeleton';
 
 // Eager-load the landing page for fast first paint
 import Landing from './pages/Landing';
@@ -31,14 +33,13 @@ const Profile = lazy(() => import('./pages/Profile'));
 const Pricing = lazy(() => import('./pages/Pricing'));
 const AdminDashboard = lazy(() => import('./pages/Admin'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
+const LearnPage = lazy(() => import('./pages/Learn'));
+const ReferralPage = lazy(() => import('./pages/Referral'));
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-3 border-mero-teal border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm text-slate-400">Loading...</span>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <DashboardSkeleton />
     </div>
   );
 }
@@ -46,6 +47,7 @@ function PageLoader() {
 function App() {
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
         {/* Public Pages */}
@@ -66,6 +68,7 @@ function App() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/portfolio-info" element={<PortfolioInfoPage />} />
+        <Route path="/learn" element={<LearnPage />} />
         <Route path="/stock/:symbol" element={<StockDetail />} />
 
         {/* Wrap all authenticated pages in ProtectedRoute */}
@@ -77,6 +80,7 @@ function App() {
             <Route path="/watchlist" element={<Watchlist />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/referral" element={<ReferralPage />} />
           </Route>
         </Route>
 
@@ -84,6 +88,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

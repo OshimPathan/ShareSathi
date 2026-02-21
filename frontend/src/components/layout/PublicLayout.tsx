@@ -11,7 +11,7 @@ interface PublicLayoutProps {
 
 export const PublicLayout = ({ children, showTicker = true }: PublicLayoutProps) => {
     return (
-        <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden flex flex-col">
+        <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden flex flex-col dark:bg-slate-900 dark:text-slate-200 transition-colors duration-200">
             <a href="#main-content" className="skip-link">Skip to content</a>
             <PaperTradingBanner />
             <PublicNavbar />

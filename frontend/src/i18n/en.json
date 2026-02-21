@@ -1,0 +1,137 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "trading": "Trading",
+    "portfolio": "Portfolio",
+    "watchlist": "Watchlist",
+    "market": "Market",
+    "learn": "Learn",
+    "referral": "Refer & Earn",
+    "pricing": "Pricing",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Log Out",
+    "search": "Search stocks…",
+    "notifications": "Notifications"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "marketOverview": "Market Overview",
+    "nepseIndex": "NEPSE Index",
+    "volume": "Volume",
+    "turnover": "Turnover",
+    "gainers": "Top Gainers",
+    "losers": "Top Losers",
+    "ltp": "LTP",
+    "change": "Change",
+    "filter": "Filter by name…",
+    "noData": "No data available"
+  },
+  "trading": {
+    "title": "Trading",
+    "buy": "Buy",
+    "sell": "Sell",
+    "quantity": "Quantity",
+    "price": "Price",
+    "total": "Total",
+    "placeOrder": "Place Order",
+    "orderHistory": "Order History",
+    "noOrders": "No orders yet"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "totalValue": "Total Value",
+    "invested": "Invested",
+    "returns": "Returns",
+    "holdings": "Holdings",
+    "symbol": "Symbol",
+    "qty": "Qty",
+    "avgCost": "Avg Cost",
+    "currentPrice": "Current Price",
+    "profitLoss": "P/L",
+    "noHoldings": "No holdings yet. Start trading to build your portfolio!"
+  },
+  "watchlist": {
+    "title": "Watchlist",
+    "addStock": "Add Stock",
+    "empty": "Your watchlist is empty"
+  },
+  "stock": {
+    "overview": "Overview",
+    "high": "High",
+    "low": "Low",
+    "open": "Open",
+    "close": "Close",
+    "volume": "Volume",
+    "week52High": "52W High",
+    "week52Low": "52W Low",
+    "marketCap": "Market Cap",
+    "peRatio": "P/E Ratio",
+    "bookValue": "Book Value",
+    "eps": "EPS"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginCta": "Sign In",
+    "registerCta": "Sign Up"
+  },
+  "learn": {
+    "title": "Learn",
+    "progress": "Progress",
+    "previous": "Previous",
+    "next": "Next",
+    "proTip": "Pro Tip",
+    "startTrading": "Practice what you've learned →"
+  },
+  "referral": {
+    "title": "Refer & Earn",
+    "subtitle": "Share ShareSathi with your friends",
+    "yourLink": "Your Referral Link",
+    "copyLink": "Copy Link",
+    "copied": "Copied!",
+    "share": "Share with Friends",
+    "howItWorks": "How It Works",
+    "totalReferrals": "Total Referrals",
+    "activeFriends": "Active Friends",
+    "monthsEarned": "Months Earned",
+    "pending": "Pending",
+    "history": "Referral History",
+    "noReferrals": "No referrals yet"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "goHome": "Go Home",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "viewAll": "View All",
+    "back": "Back",
+    "currency": "NPR"
+  },
+  "landing": {
+    "hero": "Master the Stock Market Without Risking Real Money",
+    "heroSub": "Practice trading on Nepal Stock Exchange with virtual money. Learn, trade, and grow your skills risk-free.",
+    "cta": "Start Paper Trading — Free",
+    "features": "Features",
+    "testimonials": "Testimonials"
+  },
+  "footer": {
+    "about": "About",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "disclaimer": "Disclaimer",
+    "rights": "All rights reserved."
+  }
+}

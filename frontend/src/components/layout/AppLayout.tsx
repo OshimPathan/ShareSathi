@@ -6,7 +6,7 @@ import PaperTradingBanner from "./PaperTradingBanner";
 
 export const AppLayout = () => {
     return (
-        <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800 font-sans overflow-x-hidden selection:bg-mero-teal/20">
+        <div className="flex flex-col min-h-screen bg-slate-50 text-slate-800 font-sans overflow-x-hidden selection:bg-mero-teal/20 dark:bg-slate-900 dark:text-slate-200 transition-colors duration-200">
             <a href="#main-content" className="skip-link">Skip to content</a>
             <PaperTradingBanner />
             <Navbar />

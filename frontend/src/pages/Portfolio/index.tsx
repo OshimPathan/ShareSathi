@@ -61,7 +61,7 @@ export const Portfolio = () => {
             {/* Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-slide-up">
                 <div>
-                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Portfolio</h1>
+                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Portfolio</h1>
                     <p className="text-sm text-slate-500 mt-0.5">Your simulated investments &amp; performance</p>
                 </div>
                 {isLoading ? (
@@ -82,26 +82,26 @@ export const Portfolio = () => {
 
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
-                <div className="rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-200/50 p-4">
+                <div className="rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-200/50 p-4 dark:from-blue-900/20 dark:to-slate-800 dark:border-blue-800/30">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Wallet className="w-4 h-4 text-blue-600" /></div>
                         <span className="text-xs text-blue-600 font-semibold">Cash</span>
                     </div>
-                    <div className="text-xl font-extrabold font-mono text-slate-900">{formatCurrency(balance)}</div>
+                    <div className="text-xl font-extrabold font-mono text-slate-900 dark:text-white">{formatCurrency(balance)}</div>
                 </div>
-                <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/80 p-4">
+                <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white border border-slate-200/80 p-4 dark:from-slate-800 dark:to-slate-800 dark:border-slate-700/60">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><DollarSign className="w-4 h-4 text-slate-600" /></div>
                         <span className="text-xs text-slate-500 font-semibold">Invested</span>
                     </div>
-                    <div className="text-xl font-extrabold font-mono text-slate-900">{formatCurrency(summary.total_investment)}</div>
+                    <div className="text-xl font-extrabold font-mono text-slate-900 dark:text-white">{formatCurrency(summary.total_investment)}</div>
                 </div>
-                <div className="rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-200/50 p-4">
+                <div className="rounded-xl bg-gradient-to-br from-purple-50 to-white border border-purple-200/50 p-4 dark:from-purple-900/20 dark:to-slate-800 dark:border-purple-800/30">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-purple-600" /></div>
                         <span className="text-xs text-purple-600 font-semibold">Current Value</span>
                     </div>
-                    <div className="text-xl font-extrabold font-mono text-slate-900">{formatCurrency(summary.total_current_value)}</div>
+                    <div className="text-xl font-extrabold font-mono text-slate-900 dark:text-white">{formatCurrency(summary.total_current_value)}</div>
                 </div>
                 <div className={`rounded-xl p-4 ${summary.total_pnl >= 0 ? 'bg-gradient-to-br from-emerald-50 to-white border border-emerald-200/50' : 'bg-gradient-to-br from-rose-50 to-white border border-rose-200/50'}`}>
                     <div className="flex items-center gap-2 mb-2">
@@ -123,13 +123,13 @@ export const Portfolio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
                 <Card className="lg:col-span-2">
                     <CardHeader>
-                        <CardTitle className="text-slate-900">Holdings</CardTitle>
+                        <CardTitle className="text-slate-900 dark:text-white">Holdings</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto -mx-6">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="text-xs text-slate-500 uppercase border-b border-slate-200">
+                                    <tr className="text-xs text-slate-500 uppercase border-b border-slate-200 dark:border-slate-700 dark:text-slate-400">
                                         <th className="px-6 py-3 text-left font-semibold">Symbol</th>
                                         <th className="px-6 py-3 text-right font-semibold">Qty</th>
                                         <th className="px-6 py-3 text-right font-semibold">Avg Price</th>
@@ -149,7 +149,7 @@ export const Portfolio = () => {
                                         assets.map((asset) => {
                                             const up = asset.pnl >= 0;
                                             return (
-                                                <tr key={asset.symbol} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                                                <tr key={asset.symbol} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors dark:border-slate-700/50 dark:hover:bg-slate-700/30">
                                                     <td className="px-6 py-3.5">
                                                         <Link to={`/stock/${asset.symbol}`} className="font-semibold text-mero-teal hover:text-mero-darkTeal transition-colors">
                                                             {asset.symbol}

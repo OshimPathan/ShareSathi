@@ -52,7 +52,7 @@ export const Dashboard = () => {
             {/* Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-slide-up">
                 <div>
-                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Market Dashboard</h1>
+                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Market Dashboard</h1>
                     <p className="text-sm text-slate-500 mt-0.5">Live NEPSE data · Paper trading</p>
                 </div>
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${loaded && summary ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
@@ -206,9 +206,9 @@ export const Dashboard = () => {
                     <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Sector Indices</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                         {subIndices.map((index) => (
-                            <div key={index.sector} className="bg-white rounded-xl border border-slate-200/80 p-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-default">
-                                <div className="text-xs text-slate-500 truncate mb-1.5 font-medium group-hover:text-mero-teal transition-colors" title={index.sector}>{index.sector}</div>
-                                <div className="font-mono font-bold text-slate-900 text-sm">{Number(index.value).toFixed(2)}</div>
+                            <div key={index.sector} className="bg-white rounded-xl border border-slate-200/80 p-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-default dark:bg-slate-800 dark:border-slate-700/60">
+                                <div className="text-xs text-slate-500 truncate mb-1.5 font-medium group-hover:text-mero-teal transition-colors dark:text-slate-400" title={index.sector}>{index.sector}</div>
+                                <div className="font-mono font-bold text-slate-900 text-sm dark:text-white">{Number(index.value).toFixed(2)}</div>
                                 <div className={`font-mono text-xs mt-1 font-bold flex items-center gap-0.5 ${Number(index.change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                     {Number(index.change) >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                                     {Number(index.change) > 0 ? '+' : ''}{Number(index.change).toFixed(2)}
@@ -223,20 +223,20 @@ export const Dashboard = () => {
             <div className="animate-slide-up delay-400" style={{ opacity: 0, animationFillMode: 'forwards' }}>
                 <Card>
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <CardTitle className="text-slate-900">Live Market Watch</CardTitle>
+                        <CardTitle className="text-slate-900 dark:text-white">Live Market Watch</CardTitle>
                         <input
                             type="text"
                             placeholder="Filter by symbol..."
                             value={searchFilter}
                             onChange={(e) => setSearchFilter(e.target.value)}
-                            className="text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-mero-teal/50 outline-none transition-colors w-full sm:w-48"
+                            className="text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-mero-teal/50 outline-none transition-colors w-full sm:w-48 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:focus:bg-slate-600"
                         />
                     </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto -mx-6">
                             <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="text-xs text-slate-500 uppercase border-b border-slate-200">
+                                    <tr className="text-xs text-slate-500 uppercase border-b border-slate-200 dark:border-slate-700 dark:text-slate-400">
                                         <th className="px-6 py-3 text-left font-semibold">Symbol</th>
                                         <th className="px-6 py-3 text-right font-semibold">LTP (Rs)</th>
                                         <th className="px-6 py-3 text-right font-semibold">Change</th>
@@ -257,11 +257,11 @@ export const Dashboard = () => {
                                             const pct = Number(stock.percentage_change);
                                             const up = pct >= 0;
                                             return (
-                                                <tr key={stock.symbol} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                                                <tr key={stock.symbol} className="border-b border-slate-100 hover:bg-slate-50/80 transition-colors dark:border-slate-700/50 dark:hover:bg-slate-700/30">
                                                     <td className="px-6 py-3">
                                                         <Link to={`/stock/${stock.symbol}`} className="font-semibold text-mero-teal hover:text-mero-darkTeal transition-colors">{stock.symbol}</Link>
                                                     </td>
-                                                    <td className="px-6 py-3 font-mono text-right text-slate-800">{Number(stock.ltp).toFixed(2)}</td>
+                                                    <td className="px-6 py-3 font-mono text-right text-slate-800 dark:text-slate-200">{Number(stock.ltp).toFixed(2)}</td>
                                                     <td className={`px-6 py-3 font-mono text-right font-semibold ${up ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                         {change > 0 ? '+' : ''}{change.toFixed(2)}
                                                     </td>

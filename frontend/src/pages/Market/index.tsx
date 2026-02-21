@@ -5,6 +5,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 import { getMarketBundle, getAllStocks, getSubIndices } from '../../services/db';
 import PublicLayout from '../../components/layout/PublicLayout';
 import type { Stock, MarketSummary, SubIndex } from '../../types';
+import { MarketSkeleton } from '../../components/ui/Skeleton';
 
 type TabType = 'overview' | 'live' | 'gainers' | 'losers' | 'turnovers' | 'companies';
 
@@ -114,9 +115,7 @@ export const MarketPage = () => {
                 </div>
 
                 {loading && !summary ? (
-                    <div className="h-64 border border-slate-200 rounded bg-white flex items-center justify-center text-slate-500 animate-pulse">
-                        Loading market data...
-                    </div>
+                    <MarketSkeleton />
                 ) : (
                     <>
                         {/* Overview Tab */}
