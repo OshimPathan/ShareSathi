@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api import auth, market, stocks, portfolio, trading, ipo, ai, watchlist, news
+from app.api import auth, market, stocks, portfolio, trading, ipo, ai, watchlist, news, payments
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -12,3 +12,4 @@ api_router.include_router(ipo.router, prefix="/ipo", tags=["IPO Info"])
 api_router.include_router(watchlist.router, prefix="/watchlist", tags=["Watchlist"])
 api_router.include_router(ai.router, prefix="/ai", tags=["AI Predictions"])
 api_router.include_router(news.router, prefix="/news", tags=["News"])
+api_router.include_router(payments.router, tags=["Payments"])

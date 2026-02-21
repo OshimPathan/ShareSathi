@@ -11,6 +11,9 @@ import VerifyEmail from './pages/Auth/VerifyEmail';
 import Landing from './pages/Landing';
 import About from './pages/InfoPages/About';
 import Contact from './pages/InfoPages/Contact';
+import Disclaimer from './pages/Legal/Disclaimer';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
+import TermsOfService from './pages/Legal/TermsOfService';
 import MarketDataPage from './pages/MarketData';
 import MarketPage from './pages/Market';
 import NewsPage from './pages/News';
@@ -20,6 +23,8 @@ import ReportsPage from './pages/Reports';
 import ServicesPage from './pages/Services';
 import PortfolioInfoPage from './pages/PortfolioInfo';
 import Profile from './pages/Profile';
+import Pricing from './pages/Pricing';
+import AdminDashboard from './pages/Admin';
 import NotFoundPage from './pages/NotFound';
 
 function App() {
@@ -32,6 +37,9 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="/market" element={<MarketPage />} />
         <Route path="/market/:type" element={<MarketDataPage />} />
         <Route path="/news" element={<NewsPage />} />
@@ -39,6 +47,7 @@ function App() {
         <Route path="/announcements" element={<AnnouncementsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/portfolio-info" element={<PortfolioInfoPage />} />
         <Route path="/stock/:symbol" element={<StockDetail />} />
 
@@ -50,6 +59,7 @@ function App() {
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/watchlist" element={<Watchlist />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Route>
         </Route>
 

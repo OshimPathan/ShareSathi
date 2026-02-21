@@ -93,6 +93,15 @@ export const Trading = () => {
                 </div>
             </header>
 
+            {/* Paper Trading Disclaimer */}
+            <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+                <span className="text-amber-600 text-lg mt-0.5">⚠️</span>
+                <div>
+                    <p className="text-sm font-semibold text-amber-800">Paper Trading Only</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Trades use virtual money with real NEPSE prices. No real securities are bought or sold. Brokerage fees mirror NEPSE rates for educational purposes.</p>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Visualizations Column */}

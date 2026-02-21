@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
+import os
 import time
 from collections import defaultdict
 from fastapi import FastAPI, Request, Response
@@ -14,6 +15,21 @@ from app.database.base import Base
 from app.websocket.connection_manager import manager
 from app.background.scheduler import start_scheduler, stop_scheduler
 from app.cache.redis_client import setup_redis, close_redis
+
+# ─── Sentry Error Monitoring ──────────────────────────────
+# To enable: pip install sentry-sdk[fastapi]
+# Then set SENTRY_DSN env var
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN:
+    try:
+        import sentry_sdk
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            traces_sample_rate=0.2,
+            environment=os.getenv("ENVIRONMENT", "development"),
+        )
+    except ImportError:
+        pass  # sentry-sdk not installed
 
 logging.basicConfig(
     level=logging.INFO,
@@ -92,9 +108,25 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
 )
+
+
+# ─── Security Headers Middleware ────────────────────────────
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to every response."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 app.include_router(ws_router)

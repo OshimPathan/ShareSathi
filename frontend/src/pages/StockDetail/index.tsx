@@ -164,6 +164,9 @@ export const StockDetail = () => {
                                     </div>
                                     <p className="text-sm font-semibold text-indigo-600">Coming Soon</p>
                                     <p className="text-xs text-slate-500 mt-1 max-w-xs">AI-powered forecasts with buy/sell signals and confidence scores are under development.</p>
+                                    <div className="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md">
+                                        <p className="text-[10px] text-amber-700 font-medium">Note: When available, AI forecasts will be simulated for educational purposes only and should NOT be used for real investment decisions.</p>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -198,6 +201,14 @@ export const StockDetail = () => {
                         <Card>
                             <CardHeader><CardTitle>Stock Information</CardTitle></CardHeader>
                             <CardContent>
+                                <div className="mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-2">
+                                    <span className="text-amber-600 text-sm mt-0.5">⚠️</span>
+                                    <p className="text-xs text-amber-700">
+                                        <strong>Paper Trading Data:</strong> Prices (Open, High, Low, Volume, Turnover) are real NEPSE data. 
+                                        Fundamental metrics (EPS, P/E, Book Value, etc.) shown elsewhere are estimated for educational purposes only. 
+                                        Do NOT use for real investment decisions.
+                                    </p>
+                                </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
                                         <p className="text-xs text-slate-500">Open</p>
@@ -315,6 +326,9 @@ export const StockDetail = () => {
                             <CardTitle>Key Statistics</CardTitle>
                         </CardHeader>
                         <CardContent>
+                            <div className="mb-3 px-2 py-1.5 bg-blue-50 border border-blue-200 rounded text-[10px] text-blue-700 font-medium">
+                                📊 Real NEPSE market data · Paper trading only
+                            </div>
                             <div className="space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-slate-500">LTP</span>

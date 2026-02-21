@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { IpoWidget } from "../../components/domain/IpoWidget";
+import OnboardingModal from "../../components/domain/OnboardingModal";
 import { getMarketBundle, getAllStocks } from "../../services/db";
 import type { Stock, MarketSummary, SubIndex } from "../../types";
 
@@ -38,6 +39,7 @@ export const Dashboard = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <OnboardingModal />
             <header className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight text-slate-800">Market Overview</h1>
@@ -49,6 +51,12 @@ export const Dashboard = () => {
                     {loaded && summary ? summary.market_status || "Market Data Loaded" : "Loading..."}
                 </div>
             </header>
+
+            {/* Paper Trading Notice */}
+            <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                <span className="text-blue-500 text-sm">📊</span>
+                <p className="text-xs text-blue-700">Real NEPSE market data · Paper trading with virtual money · Not financial advice</p>
+            </div>
 
             {/* Macro Summary Row */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

@@ -35,7 +35,7 @@ export const Footer = () => {
                         <div className="space-y-3 text-sm">
                             <Link to="/contact" className="block hover:underline">Contact Us</Link>
                             <Link to="/services" className="block hover:underline">Video Tutorials</Link>
-                            <a href="#bank-details" className="block hover:underline">Bank Accounts</a>
+                            <Link to="/pricing" className="block hover:underline">Pricing & Plans</Link>
                             <Link to="/about" className="block hover:underline">About Us</Link>
                         </div>
 
@@ -50,11 +50,11 @@ export const Footer = () => {
                                 <h4 className="font-bold">Contact Info</h4>
                                 <p><span className="font-bold">E-mail:</span> oshimpathan@gmail.com</p>
                             </div>
-                            <div id="bank-details" className="pt-2 border-t border-white/20">
-                                <h4 className="font-bold mb-1">Bank Account Details</h4>
-                                <p>NIC Asia Bank</p>
-                                <p><span className="font-bold">A/C Name:</span> Oshim Pathan</p>
-                                <p><span className="font-bold">A/C Number:</span> 1234567890123456</p>
+                            <div className="pt-2 border-t border-white/20">
+                                <h4 className="font-bold mb-1">Platform</h4>
+                                <p>Paper Trading & Analytics</p>
+                                <p>Real NEPSE Data</p>
+                                <p className="text-white/70 text-xs mt-1">Free educational platform — no real money involved</p>
                             </div>
 
                             {/* Social Icons Placeholder */}
@@ -69,24 +69,11 @@ export const Footer = () => {
                     {/* Partners Section */}
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pt-8 border-t border-white/20 gap-8">
                         <div className="flex-1">
-                            <h4 className="font-bold mb-3 uppercase text-sm">Payment Partners</h4>
-                            <div className="flex flex-wrap gap-2">
-                                <span className="bg-white text-purple-600 px-4 py-1.5 rounded font-bold text-sm">Ncell</span>
-                                <span className="bg-[#60bb46] text-white px-4 py-1.5 rounded font-bold tracking-tight text-sm">eSewa</span>
-                                <span className="bg-white text-blue-600 px-4 py-1.5 rounded font-bold text-sm border border-blue-600">connect IPS</span>
-                                <span className="bg-purple-700 text-white px-4 py-1.5 rounded font-bold text-sm">Khalti</span>
-                                <span className="bg-red-600 text-white px-4 py-1.5 rounded font-bold text-sm">IME pay</span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold mb-3 uppercase text-sm">We Accept</h4>
-                            <div className="flex gap-2">
-                                <span className="bg-white text-blue-800 px-4 py-1.5 rounded font-bold text-sm italic border border-slate-300">VISA</span>
-                                <span className="bg-white text-slate-800 px-4 py-1.5 rounded font-bold text-xs flex flex-col items-center leading-tight border border-slate-300">
-                                    <span className="text-blue-600">VERIFIED</span>
-                                    <span>by VISA</span>
-                                </span>
+                            <h4 className="font-bold mb-3 uppercase text-sm">Platform</h4>
+                            <div className="flex flex-wrap gap-3 text-sm">
+                                <span className="bg-white/10 text-white px-4 py-1.5 rounded font-medium text-sm border border-white/20">Paper Trading</span>
+                                <span className="bg-white/10 text-white px-4 py-1.5 rounded font-medium text-sm border border-white/20">Real NEPSE Data</span>
+                                <span className="bg-white/10 text-white px-4 py-1.5 rounded font-medium text-sm border border-white/20">Free to Use</span>
                             </div>
                         </div>
 
@@ -124,7 +111,13 @@ export const Footer = () => {
                         <span className="bg-white text-mero-teal font-bold px-2 py-0.5 rounded text-[10px] tracking-widest border border-slate-200">AI</span>
                     </div>
 
-                    <p>Disclaimer, Privacy & Terms of Use</p>
+                    <div className="flex items-center gap-3">
+                        <Link to="/disclaimer" className="hover:underline">Disclaimer</Link>
+                        <span>|</span>
+                        <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+                        <span>|</span>
+                        <Link to="/terms" className="hover:underline">Terms of Use</Link>
+                    </div>
                 </div>
             </div>
         </footer>

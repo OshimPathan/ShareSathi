@@ -210,6 +210,23 @@ python -m pytest tests/ -v
 
 ---
 
+## Startup Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the full 6-phase startup roadmap.
+
+| Phase | Status | Target |
+|-------|--------|--------|
+| 1. Foundation (MVP) | ✅ Done | — |
+| 2. Hardening (Legal, Security, CI) | ✅ Done | — |
+| 3. Growth Infrastructure (SEO, Analytics, Payments, Admin) | ✅ Done | — |
+| 4. Revenue & Monetization (Khalti live, premium gating) | 🔜 Next | Q2 2026 |
+| 5. Product Expansion (mobile, social, competitions) | 📋 Planned | Q3 2026 |
+| 6. Moat (SEBON licensing, brokerage API) | 📋 Planned | Q4 2026 |
+
+**Revenue model:** Freemium with Free / Basic (Rs.199/mo) / Pro (Rs.499/mo) tiers.
+
+---
+
 <div align="center">
   <p><i>Practice trading NEPSE stocks risk-free. Built for Nepal's aspiring investors.</i></p>
 </div>

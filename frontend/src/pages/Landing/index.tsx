@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getMarketBundle, getNews } from '../../services/db';
 import { SearchableDropdown } from '../../components/ui/SearchableDropdown';
 import { Footer } from '../../components/layout/Footer';
+import PaperTradingBanner from '../../components/layout/PaperTradingBanner';
 import Ticker from '../../components/domain/Ticker';
 import type { Stock, MarketSummary, NewsItem } from '../../types';
 
@@ -35,6 +36,7 @@ export const Landing = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
+            <PaperTradingBanner />
 
             {/* Top Orange Header Bar */}
             <div className="bg-mero-orange text-white text-xs py-2 px-4 lg:px-20 hidden md:flex justify-between items-center w-full">

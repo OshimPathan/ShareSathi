@@ -325,8 +325,7 @@ export async function executeTrade(
     });
 
     if (error) {
-      // Fallback to client-side logic if RPC not available
-      return await executeTradeClientSide(userId, symbol, quantity, action, price, fees.total, wallet);
+      return { success: false, message: error.message || 'Trade execution failed. Server-side validation is required.' };
     }
 
     if (data && typeof data === 'object' && 'error' in data) {
@@ -339,100 +338,8 @@ export async function executeTrade(
       message: `Successfully ${action === 'BUY' ? 'bought' : 'sold'} ${quantity} shares of ${symbol.toUpperCase()} at Rs. ${price.toFixed(2)}${feeStr}`,
     };
   } catch {
-    // Fallback to client-side if RPC fails
-    return await executeTradeClientSide(userId, symbol, quantity, action, price, fees.total, wallet);
+    return { success: false, message: 'Trade service unavailable. Please try again later.' };
   }
-}
-
-/** Fallback: client-side trade execution (used when RPC is not configured) */
-async function executeTradeClientSide(
-  userId: string,
-  symbol: string,
-  quantity: number,
-  action: 'BUY' | 'SELL',
-  price: number,
-  totalFees: number,
-  wallet: WalletData,
-): Promise<{ success: boolean; message: string }> {
-  const tradeAmount = price * quantity;
-
-  if (action === 'BUY') {
-    const totalCost = tradeAmount + totalFees;
-    if (wallet.balance < totalCost) {
-      return { success: false, message: `Insufficient balance. Need Rs. ${totalCost.toLocaleString()} (shares: ${tradeAmount.toLocaleString()} + fees: ${totalFees.toFixed(2)}) but have Rs. ${wallet.balance.toLocaleString()}` };
-    }
-
-    // Deduct from wallet
-    await insforge.database.from('wallets').update({ balance: wallet.balance - totalCost }).eq('user_id', userId);
-
-    // Update or create portfolio position
-    const { data: existing } = await insforge.database
-      .from('portfolio')
-      .select()
-      .eq('user_id', userId)
-      .eq('symbol', symbol.toUpperCase())
-      .maybeSingle();
-
-    if (existing) {
-      const ex = existing as PortfolioItem;
-      const newQty = ex.quantity + quantity;
-      const newAvg = ((ex.quantity * ex.average_buy_price) + tradeAmount) / newQty;
-      await insforge.database
-        .from('portfolio')
-        .update({ quantity: newQty, average_buy_price: newAvg })
-        .eq('user_id', userId)
-        .eq('symbol', symbol.toUpperCase());
-    } else {
-      await insforge.database
-        .from('portfolio')
-        .insert({ user_id: userId, symbol: symbol.toUpperCase(), quantity, average_buy_price: price });
-    }
-  } else {
-    // SELL
-    const { data: existing } = await insforge.database
-      .from('portfolio')
-      .select()
-      .eq('user_id', userId)
-      .eq('symbol', symbol.toUpperCase())
-      .maybeSingle();
-
-    if (!existing) return { success: false, message: `You don't own any ${symbol} shares` };
-    const ex = existing as PortfolioItem;
-    if (ex.quantity < quantity) {
-      return { success: false, message: `Insufficient shares. Own ${ex.quantity} but trying to sell ${quantity}` };
-    }
-
-    const netRevenue = tradeAmount - totalFees;
-    await insforge.database.from('wallets').update({ balance: wallet.balance + netRevenue }).eq('user_id', userId);
-
-    if (ex.quantity === quantity) {
-      await insforge.database
-        .from('portfolio')
-        .delete()
-        .eq('user_id', userId)
-        .eq('symbol', symbol.toUpperCase());
-    } else {
-      await insforge.database
-        .from('portfolio')
-        .update({ quantity: ex.quantity - quantity })
-        .eq('user_id', userId)
-        .eq('symbol', symbol.toUpperCase());
-    }
-  }
-
-  // Record transaction
-  await insforge.database
-    .from('transactions')
-    .insert({
-      user_id: userId,
-      symbol: symbol.toUpperCase(),
-      transaction_type: action,
-      quantity,
-      price,
-    });
-
-  const feeStr = totalFees > 0 ? ` (fees: Rs. ${totalFees.toFixed(2)})` : '';
-  return { success: true, message: `Successfully ${action === 'BUY' ? 'bought' : 'sold'} ${quantity} shares of ${symbol.toUpperCase()} at Rs. ${price.toFixed(2)}${feeStr}` };
 }
 
 export async function getTransactions(): Promise<Transaction[]> {
