@@ -84,20 +84,20 @@ export const Landing = () => {
     ] : [];
 
     return (
-        <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
+        <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
 
             {/* ═══ NAVBAR ═══ */}
-            <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-slate-200/50">
+            <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-slate-200/50 dark:border-slate-700/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-3 group">
                             <img src="/logo.png" alt="ShareSathi" className="w-9 h-9 group-hover:scale-110 transition-transform duration-300" />
-                            <span className="text-xl font-bold tracking-tight text-slate-900">Share<span className="text-mero-teal">Sathi</span></span>
+                            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Share<span className="text-mero-teal">Sathi</span></span>
                         </Link>
 
                         {/* Desktop Nav */}
-                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
                             <Link to="/market" className="hover:text-mero-teal transition-colors">Market</Link>
                             <Link to="/news" className="hover:text-mero-teal transition-colors">News</Link>
                             <Link to="/ipo" className="hover:text-mero-teal transition-colors">IPO</Link>
@@ -114,7 +114,7 @@ export const Landing = () => {
                                     placeholder="Search stocks..."
                                 />
                             </div>
-                            <button onClick={() => navigate('/login')} className="text-sm font-medium text-slate-600 hover:text-mero-teal transition-colors px-3 py-2">
+                            <button onClick={() => navigate('/login')} className="text-sm font-medium text-slate-600 hover:text-mero-teal transition-colors px-3 py-2 dark:text-slate-300">
                                 Sign In
                             </button>
                             <button
@@ -126,24 +126,24 @@ export const Landing = () => {
                         </div>
 
                         {/* Mobile menu button */}
-                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                             <div className="w-5 h-5 flex flex-col justify-center gap-1">
-                                <span className={`block h-0.5 w-full bg-slate-600 transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
-                                <span className={`block h-0.5 w-full bg-slate-600 transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`} />
-                                <span className={`block h-0.5 w-full bg-slate-600 transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
+                                <span className={`block h-0.5 w-full bg-slate-600 dark:bg-slate-300 transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
+                                <span className={`block h-0.5 w-full bg-slate-600 dark:bg-slate-300 transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`} />
+                                <span className={`block h-0.5 w-full bg-slate-600 dark:bg-slate-300 transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
                             </div>
                         </button>
                     </div>
 
                     {/* Mobile Menu */}
                     {mobileMenuOpen && (
-                        <div className="md:hidden py-4 border-t border-slate-200/50 animate-slide-down">
+                        <div className="md:hidden py-4 border-t border-slate-200/50 dark:border-slate-700/50 animate-slide-down">
                             <div className="flex flex-col gap-2">
                                 {[{ to: '/market', label: 'Market' }, { to: '/news', label: 'News' }, { to: '/ipo', label: 'IPO' }, { to: '/pricing', label: 'Pricing' }].map(item => (
-                                    <Link key={item.to} to={item.to} className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-mero-teal hover:bg-slate-50 rounded-lg transition-colors">{item.label}</Link>
+                                    <Link key={item.to} to={item.to} className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-mero-teal hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">{item.label}</Link>
                                 ))}
                                 <div className="flex gap-2 mt-2 px-3">
-                                    <button onClick={() => navigate('/login')} className="flex-1 text-sm font-medium text-slate-600 border border-slate-200 py-2.5 rounded-full hover:bg-slate-50">Sign In</button>
+                                    <button onClick={() => navigate('/login')} className="flex-1 text-sm font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 py-2.5 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800">Sign In</button>
                                     <button onClick={() => navigate('/login', { state: { register: true } })} className="flex-1 bg-mero-teal text-white text-sm font-semibold py-2.5 rounded-full">Get Started</button>
                                 </div>
                             </div>
@@ -155,7 +155,7 @@ export const Landing = () => {
             {/* ═══ HERO SECTION ═══ */}
             <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
                 {/* Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-teal-50/30" />
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-teal-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800" />
                 <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-mero-teal/5 rounded-full blur-[128px] pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-mero-orange/5 rounded-full blur-[100px] pointer-events-none" />
 
@@ -170,12 +170,12 @@ export const Landing = () => {
                                 <Activity className="w-4 h-4" />
                                 Live NEPSE Data · Paper Trading
                             </div>
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1] animate-slide-up">
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.1] animate-slide-up">
                                 Master NEPSE
                                 <br />
                                 <span className="text-gradient">Risk-Free</span>
                             </h1>
-                            <p className="mt-6 text-lg text-slate-600 leading-relaxed animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                            <p className="mt-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
                                 Practice trading on Nepal Stock Exchange with <strong>real market data</strong> and <strong>Rs. 10,00,000</strong> virtual money. Build confidence before investing real capital.
                             </p>
 
@@ -190,7 +190,7 @@ export const Landing = () => {
                                 </button>
                                 <button
                                     onClick={() => navigate('/market')}
-                                    className="group border-2 border-slate-200 hover:border-mero-teal/30 text-slate-700 font-semibold px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-mero-teal/5 flex items-center gap-2"
+                                    className="group border-2 border-slate-200 dark:border-slate-700 hover:border-mero-teal/30 text-slate-700 dark:text-slate-300 font-semibold px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-mero-teal/5 flex items-center gap-2"
                                 >
                                     <Play className="w-4 h-4" />
                                     View Live Market
@@ -206,8 +206,8 @@ export const Landing = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <div className="text-sm text-slate-500">
-                                    <span className="font-semibold text-slate-700">2,500+</span> traders learning NEPSE
+                                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                                    <span className="font-semibold text-slate-700 dark:text-slate-300">2,500+</span> traders learning NEPSE
                                 </div>
                             </div>
                         </div>
@@ -218,15 +218,15 @@ export const Landing = () => {
                                 {/* Glow effect */}
                                 <div className="absolute -inset-4 bg-gradient-to-r from-mero-teal/20 via-transparent to-mero-orange/20 rounded-3xl blur-2xl opacity-60 animate-pulse-soft" />
 
-                                <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+                                <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-200/80 dark:border-slate-700/60 overflow-hidden">
                                     {/* Card Header */}
-                                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
                                         <div>
-                                            <h3 className="font-bold text-slate-900">NEPSE Index</h3>
-                                            <p className="text-xs text-slate-500">Nepal Stock Exchange · Live</p>
+                                            <h3 className="font-bold text-slate-900 dark:text-white">NEPSE Index</h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Nepal Stock Exchange · Live</p>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-2xl font-bold font-mono text-slate-900">
+                                            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
                                                 {nepseIndex > 0 ? nepseIndex.toFixed(2) : '---'}
                                             </div>
                                             <div className={`text-sm font-mono font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -260,21 +260,21 @@ export const Landing = () => {
                                     </div>
 
                                     {/* Quick Stats */}
-                                    <div className="px-6 py-4 border-t border-slate-100 grid grid-cols-3 gap-4">
+                                    <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 grid grid-cols-3 gap-4">
                                         <div>
-                                            <p className="text-xs text-slate-500">Turnover</p>
-                                            <p className="text-sm font-bold font-mono text-slate-800">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Turnover</p>
+                                            <p className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200">
                                                 {summary ? `${(Number(summary.total_turnover) / 10000000).toFixed(1)}Cr` : '---'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500">Volume</p>
-                                            <p className="text-sm font-bold font-mono text-slate-800">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Volume</p>
+                                            <p className="text-sm font-bold font-mono text-slate-800 dark:text-slate-200">
                                                 {summary ? Number(summary.total_traded_shares).toLocaleString() : '---'}
                                             </p>
                                         </div>
                                         <div>
-                                            <p className="text-xs text-slate-500">Status</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Status</p>
                                             <p className={`text-sm font-bold ${summary?.market_status === 'Open' ? 'text-emerald-600' : 'text-slate-500'}`}>
                                                 {summary?.market_status || '---'}
                                             </p>
@@ -291,7 +291,7 @@ export const Landing = () => {
             <Ticker />
 
             {/* ═══ STATS BAR ═══ */}
-            <section className="py-12 bg-slate-50 border-y border-slate-200/50">
+            <section className="py-12 bg-slate-50 dark:bg-slate-800/50 border-y border-slate-200/50 dark:border-slate-700/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                         {[
@@ -304,10 +304,10 @@ export const Landing = () => {
                                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-mero-teal/10 text-mero-teal mb-3 group-hover:scale-110 transition-transform duration-300">
                                     <stat.icon className="w-5 h-5" />
                                 </div>
-                                <div className="text-3xl font-extrabold text-slate-900 font-mono">
+                                <div className="text-3xl font-extrabold text-slate-900 dark:text-white font-mono">
                                     {stat.value}<span className="text-mero-teal">{stat.suffix}</span>
                                 </div>
-                                <div className="text-sm text-slate-500 mt-1">{stat.label}</div>
+                                <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -321,12 +321,12 @@ export const Landing = () => {
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-mero-teal/10 text-mero-teal text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
                             Why ShareSathi
                         </div>
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                             Everything you need to
                             <br />
                             <span className="text-gradient-teal">learn stock trading</span>
                         </h2>
-                        <p className="mt-4 text-lg text-slate-500">
+                        <p className="mt-4 text-lg text-slate-500 dark:text-slate-400">
                             No risk. Real data. Full experience.
                         </p>
                     </div>
@@ -342,13 +342,13 @@ export const Landing = () => {
                         ].map((feature, i) => (
                             <div
                                 key={i}
-                                className="group relative bg-white rounded-2xl border border-slate-200/80 p-6 hover-lift cursor-default"
+                                className="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 p-6 hover-lift cursor-default"
                             >
                                 <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${feature.color} mb-4 group-hover:scale-110 transition-transform duration-300`}>
                                     <feature.icon className="w-5 h-5" />
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
-                                <p className="text-sm text-slate-500 leading-relaxed">{feature.desc}</p>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{feature.title}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{feature.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -468,8 +468,8 @@ export const Landing = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-end justify-between mb-10">
                             <div>
-                                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Latest Market News</h2>
-                                <p className="mt-1 text-slate-500">Stay informed with live-scraped financial news</p>
+                                <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Latest Market News</h2>
+                                <p className="mt-1 text-slate-500 dark:text-slate-400">Stay informed with live-scraped financial news</p>
                             </div>
                             <Link to="/news" className="hidden md:inline-flex items-center gap-1 text-mero-teal hover:underline font-medium text-sm">
                                 All News <ChevronRight className="w-4 h-4" />
@@ -477,8 +477,8 @@ export const Landing = () => {
                         </div>
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {news.slice(0, 3).map((item, i) => (
-                                <a key={i} href={item.url ?? '#'} target="_blank" rel="noopener noreferrer" className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover-lift">
-                                    <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center">
+                                <a key={i} href={item.url ?? '#'} target="_blank" rel="noopener noreferrer" className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden hover-lift">
+                                    <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
                                         <BarChart3 className="w-12 h-12 text-slate-300 group-hover:text-mero-teal/50 transition-colors" />
                                     </div>
                                     <div className="p-5">
@@ -486,7 +486,7 @@ export const Landing = () => {
                                             <span className="text-xs font-semibold text-mero-teal bg-mero-teal/10 px-2 py-0.5 rounded-full">{item.category || 'Market'}</span>
                                             <span className="text-xs text-slate-400">{item.source}</span>
                                         </div>
-                                        <h3 className="font-bold text-slate-900 line-clamp-2 group-hover:text-mero-teal transition-colors leading-snug">{item.title}</h3>
+                                        <h3 className="font-bold text-slate-900 dark:text-white line-clamp-2 group-hover:text-mero-teal transition-colors leading-snug">{item.title}</h3>
                                     </div>
                                 </a>
                             ))}
