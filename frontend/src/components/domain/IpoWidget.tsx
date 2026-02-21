@@ -1,16 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
-import api from "../../services/api";
-
-interface IpoData {
-    id: number;
-    company_name: string;
-    sector: string;
-    units: string;
-    status: "OPEN" | "UPCOMING" | "CLOSED";
-    opening_date: string;
-    closing_date: string;
-}
+import { getIpos } from "../../services/db";
+import type { IpoData } from "../../types";
 
 export const IpoWidget = () => {
     const [ipos, setIpos] = useState<IpoData[]>([]);
@@ -18,14 +9,9 @@ export const IpoWidget = () => {
 
     useEffect(() => {
         const fetchIpos = async () => {
-            try {
-                const res = await api.get("/ipo");
-                setIpos(res.data);
-            } catch (err) {
-                console.error("Failed to load IPOs");
-            } finally {
-                setIsLoading(false);
-            }
+            const data = await getIpos();
+            setIpos(data);
+            setIsLoading(false);
         };
         fetchIpos();
     }, []);

@@ -8,7 +8,9 @@ from nepse import AsyncNepse
 
 from app.cache.cache_service import (
     get_cached_market_summary, set_cached_market_summary,
-    get_cached_live_market, set_cached_live_market, get_backup_live_market
+    get_cached_live_market, set_cached_live_market, get_backup_live_market,
+    get_cached_companies, set_cached_companies,
+    get_cached_fundamentals, set_cached_fundamentals
 )
 from app.utils.logger import logger
 
@@ -31,6 +33,11 @@ class NepseService:
 
     @classmethod
     async def get_market_summary(cls) -> Dict[str, Any]:
+        # Check cache first
+        cached = await get_cached_market_summary()
+        if cached:
+            return cached
+
         n = cls.get_nepse()
         try:
             summary_raw, indices_raw, subindices_raw, gainers_raw, losers_raw, turnovers_raw, is_open = await asyncio.gather(
@@ -81,7 +88,7 @@ class NepseService:
                     "turnover": float(item.get("turnover", 0))
                 })
 
-            return {
+            result = {
                 "summary": {
                     "nepseIndex": float(nepse_index_val),
                     "totalTurnover": cls.parse_float(str(summary_dict.get("Total Turnover", "0"))),
@@ -94,6 +101,8 @@ class NepseService:
                 "topTurnovers": topTurnovers,
                 "is_stale": False
             }
+            await set_cached_market_summary(result)
+            return result
         except Exception as e:
             logger.error(f"Failed to fetch market summary from nepse_service: {e}")
             return {
@@ -103,6 +112,11 @@ class NepseService:
 
     @classmethod
     async def get_live_market(cls) -> Dict[str, Any]:
+        # Check cache first
+        cached = await get_cached_live_market()
+        if cached:
+            return json.loads(cached)
+
         n = cls.get_nepse()
         try:
             live_data = await n.getLiveMarket()
@@ -117,7 +131,9 @@ class NepseService:
                     "percentageChange": float(stock.get("percentageChange", 0)),
                     "volume": int(stock.get("totalTradeQuantity", 0))
                 })
-            return {"live_market": formatted_data, "is_stale": False}
+            result = {"live_market": formatted_data, "is_stale": False}
+            await set_cached_live_market(result)
+            return result
         except Exception as e:
             logger.error(f"Failed to fetch live market: {e}")
             return {"live_market": [], "is_stale": True}
@@ -133,19 +149,27 @@ class NepseService:
                     "symbol": company.get("symbol"),
                     "companyName": company.get("securityName"),
                     "sector": company.get("sectorName"),
-                    "listedShares": 10000000, # Mocked since not present
-                    "paidUpCapital": 1000000000 # Mocked since not present
+                    "listedShares": None,
+                    "paidUpCapital": None,
+                    "_note": "listedShares and paidUpCapital are not available from the unofficial NEPSE API"
                 }
             }
         return None
 
     @classmethod
     async def get_company_list(cls) -> Dict[str, Any]:
+        # Check cache first
+        cached = await get_cached_companies()
+        if cached:
+            return cached
+
         n = cls.get_nepse()
         try:
             companies = await n.getCompanyList()
             formatted = [{"symbol": c.get("symbol"), "name": c.get("securityName"), "sector": c.get("sectorName")} for c in companies if c.get("symbol")]
-            return {"companies": formatted}
+            result = {"companies": formatted}
+            await set_cached_companies(result)
+            return result
         except Exception as e:
             logger.error(f"Failed to fetch companies: {e}")
             return {"companies": []}
@@ -175,7 +199,12 @@ class NepseService:
 
     @classmethod
     async def get_fundamentals(cls, symbol: str) -> Dict[str, Any]:
-        """Fetch real company details from API and mock what's missing (like eps, pe, div yield)"""
+        """Fetch real company details from API. EPS, P/E, div yield are estimated (not from official source)."""
+        # Check cache first
+        cached = await get_cached_fundamentals(symbol.upper())
+        if cached:
+            return cached
+
         n = cls.get_nepse()
         try:
             details_response = await n.getCompanyDetails(symbol.upper())
@@ -190,6 +219,9 @@ class NepseService:
             fifty_two_week_high = float(security_trade.get('fiftyTwoWeekHigh', 0))
             fifty_two_week_low = float(security_trade.get('fiftyTwoWeekLow', 0))
             
+            # NOTE: EPS, P/E, book value, dividend yield are estimated values
+            # since the unofficial NEPSE API does not provide these.
+            # They use a deterministic seed per symbol for consistency.
             seed_value = int(hashlib.sha256(symbol.encode('utf-8')).hexdigest(), 16) % 10**8
             random.seed(seed_value)
 
@@ -209,9 +241,13 @@ class NepseService:
                 "pbvRatio": round(random.uniform(0.5, 5), 2),
                 "52WeekHigh": round(fifty_two_week_high, 2),
                 "52WeekLow": round(fifty_two_week_low, 2),
-                "marketCap": round(paid_up_capital * random.uniform(1, 5), 2)
+                "marketCap": round(paid_up_capital * random.uniform(1, 5), 2),
+                "_is_estimated": True,
+                "_disclaimer": "⚠️ PAPER TRADING ONLY: EPS, P/E, Book Value, Dividend Yield, PBV, Market Cap are estimated values generated for educational purposes. They do NOT reflect actual company financials. Only 52-Week High/Low are real NEPSE data. Do NOT use these for real investment decisions.",
+                "_estimated_fields": ["eps", "peRatio", "bookValue", "dividendYield", "pbvRatio", "marketCap", "paidUpCapital"]
             }
             random.seed() 
+            await set_cached_fundamentals(symbol.upper(), data)
             return data
         except Exception as e:
             logger.error(f"Failed to fetch fundamentals for {symbol}: {e}")
@@ -256,7 +292,9 @@ class NepseService:
                 "targetPrice": round(target_price, 2),
                 "stopLoss": round(stop_loss, 2),
                 "reasoning": reasoning,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "_disclaimer": "⚠️ SIMULATED DATA: This forecast is randomly generated for educational/demo purposes. It is NOT based on real technical analysis, machine learning, or any actual market data. Do NOT use this for real investment decisions.",
+                "_is_simulated": True
             }
             random.seed()
             return data

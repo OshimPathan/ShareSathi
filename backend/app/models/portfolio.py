@@ -1,9 +1,12 @@
-from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, DateTime, UniqueConstraint
 from sqlalchemy.sql import func
 from app.database.base import Base
 
 class Portfolio(Base):
     __tablename__ = "portfolio"
+    __table_args__ = (
+        UniqueConstraint("user_id", "symbol", name="uq_portfolio_user_symbol"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)

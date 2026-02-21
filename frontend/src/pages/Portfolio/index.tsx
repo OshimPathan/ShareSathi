@@ -1,29 +1,13 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
-import api from "../../services/api";
+import { getWallet, getPortfolio } from "../../services/db";
+import type { PortfolioAsset, PortfolioSummary } from "../../types";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
-
-interface Asset {
-    symbol: string;
-    quantity: number;
-    average_buy_price: number;
-    current_price: number;
-    investment: number;
-    current_value: number;
-    pnl: number;
-    pnl_percentage: number;
-}
-
-interface PortfolioSummary {
-    total_investment: number;
-    total_current_value: number;
-    total_pnl: number;
-    overall_pnl_percentage: number;
-}
 
 export const Portfolio = () => {
     const [balance, setBalance] = useState<number>(0);
-    const [assets, setAssets] = useState<Asset[]>([]);
+    const [assets, setAssets] = useState<PortfolioAsset[]>([]);
     const [summary, setSummary] = useState<PortfolioSummary>({
         total_investment: 0,
         total_current_value: 0,
@@ -31,19 +15,21 @@ export const Portfolio = () => {
         overall_pnl_percentage: 0
     });
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchData = async () => {
         setIsLoading(true);
+        setError(null);
         try {
-            const [walletRes, portfolioRes] = await Promise.all([
-                api.get("/portfolio/wallet"),
-                api.get("/portfolio")
+            const [wallet, portfolio] = await Promise.all([
+                getWallet(),
+                getPortfolio()
             ]);
-            setBalance(walletRes.data.balance);
-            setAssets(portfolioRes.data.assets);
-            setSummary(portfolioRes.data.summary);
-        } catch (error) {
-            // Ignore error
+            setBalance(wallet?.balance ?? 0);
+            setAssets(portfolio.assets);
+            setSummary(portfolio.summary);
+        } catch (err: any) {
+            setError(err?.message || "Failed to load portfolio data. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -59,7 +45,7 @@ export const Portfolio = () => {
     // Calculate Sector Allocation
     const sectorMap: Record<string, number> = {};
     assets.forEach(asset => {
-        const sector = (asset as any).sector || "Others";
+        const sector = asset.sector || "Others";
         sectorMap[sector] = (sectorMap[sector] || 0) + asset.current_value;
     });
 
@@ -75,32 +61,39 @@ export const Portfolio = () => {
             <header className="flex justify-between items-end">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">My Portfolio</h1>
-                    <p className="text-sm text-slate-400 mt-1">Simulated investments & P&L</p>
+                    <p className="text-sm text-slate-500 mt-1">Simulated investments & P&L</p>
                 </div>
-                {isLoading && <div className="text-sm text-blue-400 animate-pulse">Syncing data...</div>}
+                {isLoading && <div className="text-sm text-blue-600 animate-pulse">Syncing data...</div>}
             </header>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded flex justify-between items-center">
+                    <span className="text-sm">{error}</span>
+                    <button onClick={fetchData} className="text-sm font-medium text-red-600 hover:underline ml-4">Retry</button>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-400">Available Cash</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-500">Available Cash</CardTitle></CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold font-mono text-blue-400">{formatCurrency(balance)}</div>
+                        <div className="text-2xl font-bold font-mono text-blue-600">{formatCurrency(balance)}</div>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-400">Total Invested</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-500">Total Invested</CardTitle></CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold font-mono">{formatCurrency(summary.total_investment)}</div>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-400">Current Value</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-500">Current Value</CardTitle></CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold font-mono">{formatCurrency(summary.total_current_value)}</div>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-400">Lifetime P&L</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-slate-500">Lifetime P&L</CardTitle></CardHeader>
                     <CardContent>
                         <div className={`text-2xl font-bold font-mono ${summary.total_pnl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                             {summary.total_pnl > 0 ? '+' : ''}{formatCurrency(summary.total_pnl)}
@@ -120,7 +113,7 @@ export const Portfolio = () => {
                     <CardContent>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-400 uppercase bg-slate-800/50">
+                                <thead className="text-xs text-slate-500 uppercase bg-slate-50">
                                     <tr>
                                         <th className="px-6 py-3">Symbol</th>
                                         <th className="px-6 py-3 text-right">Qty</th>
@@ -139,10 +132,12 @@ export const Portfolio = () => {
                                         </tr>
                                     ) : (
                                         assets.map((asset) => (
-                                            <tr key={asset.symbol} className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors">
-                                                <td className="px-6 py-4 font-bold text-blue-400">
-                                                    <div>{asset.symbol}</div>
-                                                    <div className="text-xs font-normal text-slate-500">{(asset as any).sector}</div>
+                                            <tr key={asset.symbol} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                                <td className="px-6 py-4 font-bold text-blue-600">
+                                                    <Link to={`/stock/${asset.symbol}`}>
+                                                        <div>{asset.symbol}</div>
+                                                        <div className="text-xs font-normal text-slate-500">{asset.sector}</div>
+                                                    </Link>
                                                 </td>
                                                 <td className="px-6 py-4 font-mono text-right">{asset.quantity.toLocaleString()}</td>
                                                 <td className="px-6 py-4 font-mono text-right">{asset.average_buy_price.toFixed(2)}</td>
@@ -191,8 +186,8 @@ export const Portfolio = () => {
                                         </Pie>
                                         <RechartsTooltip
                                             formatter={(value: any) => formatCurrency(Number(value))}
-                                            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '0.5rem', color: '#f8fafc' }}
-                                            itemStyle={{ color: '#e2e8f0' }}
+                                            contentStyle={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', borderRadius: '0.5rem', color: '#0f172a' }}
+                                            itemStyle={{ color: '#334155' }}
                                         />
                                         <Legend
                                             layout="horizontal"

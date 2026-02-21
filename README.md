@@ -1,80 +1,215 @@
 <div align="center">
   <img src="frontend/public/logo.png" alt="ShareSathi Logo" width="120" height="120">
   <br/>
-  <h1> ShareSathi</h1>
-  <p><b>Your AI-Powered Nepalese Stock Market Companion</b></p>
-  <p><i>Democratizing high-level market intelligence for every investor in Nepal.</i></p>
+  <h1>ShareSathi</h1>
+  <p><b>Nepal's Paper Trading Platform — Practice with Real NEPSE Data</b></p>
+  <p><i>Learn to trade on the Nepal Stock Exchange risk-free with live prices, real news, and accurate brokerage fees.</i></p>
 </div>
 
 ---
 
-## 🎯 The Vision: Why We Built ShareSathi
+## What is ShareSathi?
 
-Trading in the Nepal Stock Exchange (NEPSE) has traditionally been daunting. Retail investors often rely on outdated platforms, chaotic rumors, or expensive consulting to make financial decisions.
+ShareSathi is a paper trading simulator for the Nepal Stock Exchange (NEPSE). It connects to live market data so users can practice buying and selling stocks with virtual money (Rs. 10,00,000) — without risking real capital.
 
-**ShareSathi changes that.** We are a modern fintech startup dedicated to making stock market analysis and trading **effortless, intelligent, and user-friendly.**
+**Key facts:**
+- Live NEPSE prices via the unofficial NEPSE API
+- Real financial news scraped from ShareSansar and MeroLagani
+- Accurate NEPSE brokerage fees (tiered 0.24%–0.36% + SEBON fee + DP charge)
+- Trading hours enforced (Sun–Thu 11:00–15:00 NPT)
+- 10-share minimum lot size (matches NEPSE rules)
 
-By bridging the gap between raw, complex market data and sleek, actionable insights, ShareSathi empowers *anyone*—from rural beginners to Kathmandu's day traders—to navigate the financial markets with confidence.
-
----
-
-## 💡 How We Make Trading Easy & Empower the User
-
-ShareSathi isn't just a data dashboard; it's a financial co-pilot. Here is how we relentlessly focus on the user experience:
-
-### 1. 🧠 AI That Actually Understands the Market
-
-* **The Problem:** Endlessly staring at charts trying to guess the next trend is exhausting.
-* **The ShareSathi Solution:** We use advanced Machine Learning (ARIMA/Prophet) to provide 7-day price forecasts and volatility risk scorings. The AI does the heavy lifting, serving up actionable insights rather than just raw numbers.
-
-### 2. 🎮 Risk-Free Paper Trading Simulator
-
-* **The Problem:** New investors are terrified of losing their hard-earned rupees while learning.
-* **The ShareSathi Solution:** A fully simulated "paper trading" wallet with Rs. 1,000,000 in virtual funds. Users can practice real-world trading strategies against live NEPSE prices without risking a single paisa. It’s the ultimate financial playground.
-
-### 3. ⚡ Lightning-Fast, Clean Premium UI
-
-* **The Problem:** Existing broker platforms look like spreadsheets from 1998, causing fatigue and confusion.
-* **The ShareSathi Solution:** A gorgeous, dark-themed, mobile-first fintech dashboard. We prioritize clean typography, instant WebSocket data updates (no page refreshing!), and intuitive color psychology. It looks and feels like a cutting-edge global trading app.
-
-### 4. 📊 Everything You Need, In One Place
-
-* **The Problem:** Jumping between TMS for trading, MeroShare for IPOs, and 3rd party sites for charts.
-* **The ShareSathi Solution:** A unified interface presenting Live Indices, dynamic candlestick charts (Lightweight Charts), top gainers/losers matrices, and your personal simulated P&L analytics—all smoothly integrated.
+> **Disclaimer:** This is a paper trading platform for educational purposes. Fundamental data (EPS, P/E, book value) and AI forecasts are simulated. Real prices come from NEPSE.
 
 ---
 
-## 🏗️ The Technology Under the Hood
+## Tech Stack
 
-To deliver this seamless experience, ShareSathi is built on a highly scalable, startup-ready tech stack:
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, Vite 7, TypeScript 5.9, Tailwind CSS v4, Zustand, Recharts, Lightweight Charts |
+| Backend API | Python FastAPI, SQLAlchemy 2.0 (async), SQLite (dev) / PostgreSQL (prod) |
+| Data Layer | InsForge (PostgREST BaaS) — frontend reads/writes directly |
+| Data Sync | `sync_to_insforge.py` daemon — pushes NEPSE data into InsForge DB |
+| Caching | Redis (production) / fakeredis (dev fallback) |
+| Auth | InsForge Auth (email/password + Google + GitHub OAuth) |
 
-* **Frontend Magic:** React + Vite, styled precisely with TailwindCSS for that dark, premium fintech aesthetic. State-managed to handle rapid, live data updates.
-* **Backend Power:** Python FastAPI provides lightning-fast endpoints. We utilize PostgreSQL (with AsyncPG) for robust transaction handling and Redis to cache market surges instantly.
-* **Live Connectivity:** Native WebSockets push market movements the second they happen on the NEPSE floor.
+### Architecture
 
-## 🚀 Getting Started for Developers
+The frontend talks **directly** to InsForge for database reads (stocks, news, portfolio). The FastAPI backend handles server-side trade execution, WebSocket market broadcasts, and background scheduling. The sync daemon fetches live data from NEPSE and pushes it into InsForge.
 
-We welcome collaboration as we build the premier financial tool for Nepal.
+```
+React UI (5173) ──► InsForge (PostgREST BaaS) ◄── sync daemon (NEPSE API + News scraping)
+     │
+     └──────────► FastAPI Backend (8000) — trade validation, WebSocket, caching
+```
 
-### Backend Setup
+---
+
+## Features
+
+### Public Pages
+- **Landing** — Platform overview and value proposition
+- **Market** — Live NEPSE index, top gainers/losers, sector indices
+- **Stock Detail** — Per-symbol price chart, market depth, fundamentals (labeled as estimated)
+- **News** — Live-scraped articles from ShareSansar and MeroLagani
+- **IPO** — Active and upcoming IPO listings
+
+### Authenticated Pages
+- **Dashboard** — Portfolio summary, P&L, market overview
+- **Trading** — Buy/sell with real-time prices, fee breakdown, lot size validation
+- **Portfolio** — Holdings, average buy price, unrealized gain/loss
+- **Watchlist** — Track favorite stocks
+- **Profile** — Account settings
+
+### Backend Services
+- **Rate Limiting** — Per-IP sliding window (configurable, default 60 req/min)
+- **WebSocket** — Live market data broadcast with 500-connection cap
+- **Scheduler** — EOD market sync after market close
+- **Brokerage Calculator** — NEPSE tiered commission + SEBON + DP fees
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Python 3.12+
+- (Optional) Redis — falls back to fakeredis automatically
+
+### 1. Clone
+
+```bash
+git clone https://github.com/OshimPathan/ShareSathi.git
+cd ShareSathi
+```
+
+### 2. Backend
 
 ```bash
 cd backend
-source venv/bin/activate
+cp .env.example .env    # Fill in INSFORGE_BASE_URL and INSFORGE_ANON_KEY
 pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m pytest tests/ -v
+python -m uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend Setup
+### 3. Frontend
 
 ```bash
 cd frontend
+cp .env.example .env    # Fill in VITE_INSFORGE_URL and VITE_INSFORGE_ANON_KEY
 npm install
 npm run dev
 ```
 
+### 4. Data Sync Daemon (Optional)
+
+Pushes live NEPSE data into the InsForge database:
+
+```bash
+cd backend
+python sync_to_insforge.py
+# Runs continuously: prices every 2 min, news every 30 min, IPO every 6 hr
+```
+
+---
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SECRET_KEY` | Yes | JWT signing key (change in production) |
+| `DATABASE_URL` | Yes | SQLAlchemy async URL (SQLite or PostgreSQL) |
+| `REDIS_URL` | No | Redis connection URL (falls back to fakeredis) |
+| `INSFORGE_BASE_URL` | Yes | InsForge project URL |
+| `INSFORGE_ANON_KEY` | Yes | InsForge anonymous JWT token |
+| `ALLOWED_ORIGINS` | No | CORS origins (comma-separated) |
+| `RATE_LIMIT_PER_MINUTE` | No | API rate limit per IP (default: 60) |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_INSFORGE_URL` | Yes | InsForge project URL |
+| `VITE_INSFORGE_ANON_KEY` | Yes | InsForge anonymous JWT token |
+| `VITE_API_URL` | No | Backend API base URL |
+| `VITE_WS_URL` | No | WebSocket URL |
+
+---
+
+## Project Structure
+
+```
+ShareSathi/
+├── frontend/               # React + Vite + TypeScript
+│   ├── src/
+│   │   ├── components/     # Reusable UI components + ErrorBoundary
+│   │   ├── pages/          # Route pages (18 routes)
+│   │   ├── services/       # InsForge DB operations
+│   │   ├── store/          # Zustand state management
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── lib/            # InsForge client setup
+│   │   └── types/          # TypeScript interfaces
+│   └── .env.example
+├── backend/
+│   ├── app/
+│   │   ├── api/            # FastAPI route handlers
+│   │   ├── services/       # Business logic (trading, news, NEPSE)
+│   │   ├── models/         # SQLAlchemy ORM models
+│   │   ├── repositories/   # Database query layer
+│   │   ├── schemas/        # Pydantic request/response schemas
+│   │   ├── cache/          # Redis caching with fakeredis fallback
+│   │   ├── background/     # APScheduler tasks
+│   │   ├── websocket/      # WebSocket connection manager
+│   │   └── config.py       # Settings from env vars
+│   ├── tests/              # pytest test suite (14 tests)
+│   ├── sync_to_insforge.py # NEPSE → InsForge data sync daemon
+│   └── .env.example
+└── README.md
+```
+
+---
+
+## Tests
+
+```bash
+cd backend
+python -m pytest tests/ -v
+```
+
+**14 tests** covering:
+- Brokerage fee calculation (6 tests) — all NEPSE tiers, boundaries, zero trade
+- Market hours detection (2 tests) — trading vs non-trading days
+- News service (2 tests) — response structure, category filtering
+- Config safety (3 tests) — secret key, CORS parsing, rate limit
+- Fee parity (1 test) — backend fee calculation consistency
+
+---
+
+## Security
+
+- All secrets loaded from environment variables (never hardcoded)
+- `.env` files excluded from Git via `.gitignore`
+- Rate limiting middleware on all API endpoints
+- WebSocket connection cap (500 max)
+- Server-side trade validation (wallet cannot be manipulated from client)
+- React ErrorBoundary for graceful crash recovery
+
+---
+
+## Known Limitations
+
+- **Fundamentals are simulated** — EPS, P/E, book value, dividend yield are generated per symbol (clearly labeled)
+- **AI forecasts are simulated** — Buy/sell/hold signals are random-weighted (clearly labeled)
+- **No real money** — This is purely a paper trading educational tool
+- **NEPSE API is unofficial** — May break if NEPSE changes their website
+
 ---
 
 <div align="center">
-  <p><i>Building the future of Nepalese retail investing. Made with ❤️ for the community.</i></p>
+  <p><i>Practice trading NEPSE stocks risk-free. Built for Nepal's aspiring investors.</i></p>
 </div>

@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_db
@@ -8,6 +8,6 @@ from app.services.ipo_service import IpoService
 
 router = APIRouter()
 
-@router.get("", response_model=List[IpoResponse])
-async def get_all_ipos():
-    return await IpoService.get_all_ipos()
+@router.get("")
+async def get_all_ipos(status: Optional[str] = Query(default=None, description="Filter by status: OPEN, UPCOMING, CLOSED")):
+    return await IpoService.get_all_ipos(status_filter=status)

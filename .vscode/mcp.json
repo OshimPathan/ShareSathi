@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "insforge": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@insforge/mcp@latest"
+      ],
+      "env": {
+        "API_KEY": "ik_485187d5e34a0456368a1e5bc6eaf921",
+        "API_BASE_URL": "https://vicia6je.us-east.insforge.app"
+      }
+    }
+  }
+}

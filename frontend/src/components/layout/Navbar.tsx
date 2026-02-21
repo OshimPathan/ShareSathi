@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { User, LogOut, Bell } from "lucide-react";
+import { User, LogOut, Bell, Settings } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { SearchableDropdown } from "../ui/SearchableDropdown";
+import { useAuthStore } from "../../store/authStore";
 
 export const Navbar = ({ className }: { className?: string }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const navigate = useNavigate();
+    const { user, logout } = useAuthStore();
 
-    const handleLogout = () => {
-        localStorage.removeItem("access_token");
+    const handleLogout = async () => {
+        await logout();
         navigate("/login");
     };
 
@@ -117,8 +119,16 @@ export const Navbar = ({ className }: { className?: string }) => {
                         {isProfileOpen && (
                             <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded shadow-xl overflow-hidden py-1 z-[100]">
                                 <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                                    <p className="text-sm text-slate-800 font-bold">My Account</p>
+                                    <p className="text-sm text-slate-800 font-bold">{user?.name || "My Account"}</p>
+                                    {user?.email && <p className="text-xs text-slate-500 truncate">{user.email}</p>}
                                 </div>
+                                <button
+                                    onClick={() => { setIsProfileOpen(false); navigate("/profile"); }}
+                                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors font-medium"
+                                >
+                                    <Settings className="w-4 h-4" />
+                                    Profile & Settings
+                                </button>
                                 <button
                                     onClick={handleLogout}
                                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"

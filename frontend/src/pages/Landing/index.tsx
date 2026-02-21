@@ -1,29 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import api from '../../services/api';
+import { getMarketBundle, getNews } from '../../services/db';
 import { SearchableDropdown } from '../../components/ui/SearchableDropdown';
 import { Footer } from '../../components/layout/Footer';
 import Ticker from '../../components/domain/Ticker';
+import type { Stock, MarketSummary, NewsItem } from '../../types';
+
 export const Landing = () => {
     const navigate = useNavigate();
-    const [marketData, setMarketData] = useState<any>(null);
-    const [news, setNews] = useState<any[]>([]);
+    const [summary, setSummary] = useState<MarketSummary | null>(null);
+    const [topGainers, setTopGainers] = useState<Stock[]>([]);
+    const [topLosers, setTopLosers] = useState<Stock[]>([]);
+    const [topTurnovers, setTopTurnovers] = useState<Stock[]>([]);
+    const [news, setNews] = useState<NewsItem[]>([]);
 
     useEffect(() => {
         const fetchPublicData = async () => {
-            try {
-                // Fetch market summary (Gainers, Losers, etc.)
-                const marketRes = await api.get('/market/summary');
-                setMarketData(marketRes.data);
-
-                // Fetch latest news
-                const newsRes = await api.get('/news/latest');
-                setNews(newsRes.data.news);
-            } catch (error) {
-                console.error("Failed to load public data", error);
+            const [bundle, newsData] = await Promise.all([
+                getMarketBundle(),
+                getNews(undefined, 5),
+            ]);
+            if (bundle) {
+                setSummary(bundle.summary);
+                setTopGainers(bundle.topGainers);
+                setTopLosers(bundle.topLosers);
+                setTopTurnovers(bundle.topTurnovers);
             }
+            setNews(newsData);
         };
         fetchPublicData();
     }, []);
@@ -31,7 +36,7 @@ export const Landing = () => {
     return (
         <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
 
-            {/* Top Orange Header Bar (Mero Lagani Style) */}
+            {/* Top Orange Header Bar */}
             <div className="bg-mero-orange text-white text-xs py-2 px-4 lg:px-20 hidden md:flex justify-between items-center w-full">
                 <div>
                     <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
@@ -39,15 +44,15 @@ export const Landing = () => {
                 <div className="flex items-center gap-4">
                     <a href="mailto:oshimpathan@gmail.com" className="flex items-center gap-1 hover:underline">✉ oshimpathan@gmail.com</a>
                     <span className="flex items-center gap-1">📞 (+977) 9800000000</span>
-                    <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-[10px] tracking-wider transition-colors ml-2" onClick={() => alert("English Language Selected")}>ENGLISH</button>
+                    <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-[10px] tracking-wider transition-colors ml-2">ENGLISH</button>
                     <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-[#238b96] hover:bg-[#1c6f78] text-white px-3 py-1 text-[10px] tracking-wider transition-colors">Create Free Account</button>
-                    <button className="bg-[#60bb46] hover:bg-[#4ea037] text-white px-3 py-1 flex items-center text-[10px] tracking-wider transition-colors" onClick={() => alert("Opening Help Center...")}>HELP ▾</button>
-                    <a href="/about" className="hover:underline cursor-pointer">About Us</a>
-                    <a href="/contact" className="hover:underline cursor-pointer">Contact Us</a>
+                    <button className="bg-[#60bb46] hover:bg-[#4ea037] text-white px-3 py-1 flex items-center text-[10px] tracking-wider transition-colors">HELP ▾</button>
+                    <Link to="/about" className="hover:underline cursor-pointer">About Us</Link>
+                    <Link to="/contact" className="hover:underline cursor-pointer">Contact Us</Link>
                 </div>
             </div>
 
-            {/* Logo Area (White Background) */}
+            {/* Logo Area */}
             <div className="bg-white w-full py-4 px-4 lg:px-20 border-b border-slate-200">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center">
@@ -57,7 +62,6 @@ export const Landing = () => {
                             <span className="text-xs text-slate-500 italic mt-[-2px]">For the Investor...</span>
                         </div>
                     </div>
-                    {/* Mobile Only: Create Account Quick Link */}
                     <div className="md:hidden flex">
                         <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-mero-teal hover:bg-mero-darkTeal text-white px-3 py-2 text-xs font-bold rounded shadow-sm">
                             Sign Up
@@ -66,17 +70,17 @@ export const Landing = () => {
                 </div>
             </div>
 
-            {/* Main Navigation (Teal Background) */}
+            {/* Main Navigation */}
             <nav className="bg-mero-teal w-full text-white px-4 lg:px-20 flex flex-col md:flex-row justify-between items-center py-2 shadow-sm sticky top-0 z-50 gap-3 md:gap-0">
                 <div className="flex items-center gap-6 text-sm font-medium w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide shrink-0">
-                    <a href="#" className="hover:text-slate-200 transition-colors whitespace-nowrap">⌂</a>
-                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Market <span className="text-[10px] ml-1 opacity-70">▼</span></a>
-                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">News <span className="text-[10px] ml-1 opacity-70">▼</span></a>
-                    <a href="#" className="hover:text-slate-200 transition-colors whitespace-nowrap">Announcements</a>
-                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Reports <span className="text-[10px] ml-1 opacity-70">▼</span></a>
-                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Portfolio <span className="text-[10px] ml-1 opacity-70">▼</span></a>
-                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">IPO <span className="text-[10px] ml-1 opacity-70">▼</span></a>
-                    <a href="#" className="hover:text-slate-200 transition-colors whitespace-nowrap">Services</a>
+                    <Link to="/" className="hover:text-slate-200 transition-colors whitespace-nowrap">⌂</Link>
+                    <Link to="/market" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Market</Link>
+                    <Link to="/news" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">News</Link>
+                    <Link to="/announcements" className="hover:text-slate-200 transition-colors whitespace-nowrap">Announcements</Link>
+                    <Link to="/reports" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Reports</Link>
+                    <Link to="/portfolio-info" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Portfolio</Link>
+                    <Link to="/ipo" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">IPO</Link>
+                    <Link to="/services" className="hover:text-slate-200 transition-colors whitespace-nowrap">Services</Link>
                     <button onClick={() => navigate('/dashboard')} className="font-bold relative flex items-center whitespace-nowrap">
                         Dashboard
                         <span className="absolute -top-3 -right-6 bg-mero-orange text-white text-[10px] px-1 rounded shadow-sm">New</span>
@@ -89,7 +93,7 @@ export const Landing = () => {
                             <SearchableDropdown
                                 value=""
                                 onChange={(symbol) => {
-                                    if (symbol) window.location.href = `/trade?symbol=${symbol}`;
+                                    if (symbol) navigate(`/stock/${symbol}`);
                                 }}
                                 placeholder="Search symbol..."
                             />
@@ -98,36 +102,31 @@ export const Landing = () => {
                             🔍
                         </button>
                     </div>
-
-                    {/* Desktop Login Button */}
                     <button onClick={() => navigate('/login')} className="hidden md:flex items-center gap-1 font-medium hover:text-slate-200 transition-colors text-sm ml-2 whitespace-nowrap">
                         👤 Log In
                     </button>
                 </div>
             </nav>
 
-            {/* Main Content Area Container */}
             <Ticker />
 
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
 
-                {/* Hero / Banner Area (Mero Lagani 3-Column Style) */}
+                {/* Hero / Banner Area */}
                 <div className="grid lg:grid-cols-3 gap-6 mb-8">
-                    {/* Main Headline & Image (Col Span 2) */}
                     <div className="lg:col-span-2 flex flex-col">
                         <h1 className="text-2xl font-bold text-mero-teal leading-snug mb-3 hover:text-mero-darkTeal hover:underline cursor-pointer">
-                            {news.length > 0 ? news[0].title : "सुनको मूल्य उच्च रफ्तारमा बढ्ने क्रम रोकियो, यो साता तोलामा १,२०० रुपैयाँले बढेको सुन आगामी साता के होला?"}
+                            {news.length > 0 ? news[0].title : "Welcome to ShareSathi — Your Smart NEPSE Companion"}
                         </h1>
                         <div className="w-full bg-slate-900 aspect-video relative overflow-hidden group border border-slate-200 shadow-sm cursor-pointer">
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-                            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=1200" alt="Gold Investment" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700" />
+                            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=1200" alt="Market" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700" />
                             <div className="absolute bottom-4 left-4 z-20 text-white">
                                 <span className="text-xs bg-red-600 px-2 py-1 font-bold mb-2 inline-block">Market Analysis</span>
                                 <p className="text-sm font-medium opacity-90">{new Date().toLocaleDateString()}</p>
                             </div>
                         </div>
                     </div>
-                    {/* Side Ads / Promos (Col Span 1) */}
                     <div className="space-y-4 flex flex-col">
                         <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm h-[180px] flex items-center justify-center font-bold text-center group cursor-pointer overflow-hidden relative">
                             <div className="absolute inset-0 bg-blue-900 text-white flex flex-col items-center justify-center p-4">
@@ -144,13 +143,13 @@ export const Landing = () => {
                     </div>
                 </div>
 
-                {!marketData ? (
+                {!summary ? (
                     <div className="h-64 border border-slate-200 rounded bg-white flex items-center justify-center text-slate-500 animate-pulse">
                         Loading market data...
                     </div>
                 ) : (
                     <div className="space-y-8">
-                        {/* Mid Section: Mero Lagani Market Overview Chart */}
+                        {/* NEPSE Chart */}
                         <div className="bg-white border border-slate-200 border-t-4 border-t-mero-teal shadow-sm">
                             <div className="bg-mero-teal text-white px-4 py-2 inline-block font-bold text-sm tracking-wide -mt-1 ml-4 rounded-b">
                                 Market Overview
@@ -159,21 +158,21 @@ export const Landing = () => {
                                 <div className="flex items-center gap-4 mb-6">
                                     <h3 className="text-sm font-bold text-slate-700">Nepal Stock Exchange Limited · 1D</h3>
                                     <span className="bg-slate-100 text-slate-800 font-mono font-bold px-2 py-1 text-sm border border-slate-200 rounded">
-                                        {marketData.summary.nepseIndex.toFixed(2)}
+                                        {Number(summary.nepse_index).toFixed(2)}
                                     </span>
-                                    <span className={`font-bold font-mono text-sm ${marketData.summary?.percentageChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                        {marketData.summary?.percentageChange > 0 ? '+' : ''}{marketData.summary?.percentageChange?.toFixed(2) || '0.00'}%
+                                    <span className={`font-bold font-mono text-sm ${Number(summary.percentage_change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        {Number(summary.percentage_change) > 0 ? '+' : ''}{Number(summary.percentage_change).toFixed(2)}%
                                     </span>
                                 </div>
                                 <div className="h-72 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <LineChart
                                             data={[
-                                                { time: '11:00', value: marketData.summary.nepseIndex - 20 },
-                                                { time: '12:00', value: marketData.summary.nepseIndex + 5 },
-                                                { time: '13:00', value: marketData.summary.nepseIndex - 15 },
-                                                { time: '14:00', value: marketData.summary.nepseIndex + 10 },
-                                                { time: '15:00', value: marketData.summary.nepseIndex }
+                                                { time: '11:00', value: Number(summary.nepse_index) - 20 },
+                                                { time: '12:00', value: Number(summary.nepse_index) + 5 },
+                                                { time: '13:00', value: Number(summary.nepse_index) - 15 },
+                                                { time: '14:00', value: Number(summary.nepse_index) + 10 },
+                                                { time: '15:00', value: Number(summary.nepse_index) }
                                             ]}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -190,9 +189,8 @@ export const Landing = () => {
                             </div>
                         </div>
 
-                        {/* Bottom Section: Mero Lagani Data Tables Grid */}
+                        {/* Data Tables Grid */}
                         <div className="grid lg:grid-cols-2 gap-x-8 gap-y-6">
-
                             {/* Top Turnovers */}
                             <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
                                 <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
@@ -203,18 +201,16 @@ export const Landing = () => {
                                 </div>
                                 <div className="w-full">
                                     <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
-                                        <div>Symbol</div>
-                                        <div className="text-right">Turnover</div>
-                                        <div className="text-right">LTP</div>
+                                        <div>Symbol</div><div className="text-right">Turnover</div><div className="text-right">LTP</div>
                                     </div>
-                                    {marketData.topTurnovers?.slice(0, 5).map((stock: any, idx: number) => (
-                                        <div key={idx} className={`grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors`}>
-                                            <div className="font-bold text-blue-600 hover:underline cursor-pointer">{stock.symbol}</div>
-                                            <div className="text-right font-mono text-slate-800">{(stock.turnover / 100000).toLocaleString(undefined, { maximumFractionDigits: 2 })} Lakhs</div>
-                                            <div className="text-right font-mono font-medium text-slate-800">{stock.ltp?.toFixed(2) || '0.00'}</div>
+                                    {topTurnovers.slice(0, 5).map((stock, idx) => (
+                                        <div key={idx} className="grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                                            <Link to={`/stock/${stock.symbol}`} className="font-bold text-blue-600 hover:underline">{stock.symbol}</Link>
+                                            <div className="text-right font-mono text-slate-800">{(Number(stock.turnover) / 100000).toFixed(2)} Lakhs</div>
+                                            <div className="text-right font-mono font-medium text-slate-800">{Number(stock.ltp).toFixed(2)}</div>
                                         </div>
                                     ))}
-                                    <Link to="/market/turnovers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 hover:text-mero-darkTeal border-t border-slate-100 transition-colors uppercase tracking-wider">
+                                    <Link to="/market/turnovers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 border-t border-slate-100 transition-colors uppercase tracking-wider">
                                         View All Turnovers &rarr;
                                     </Link>
                                 </div>
@@ -230,18 +226,16 @@ export const Landing = () => {
                                 </div>
                                 <div className="w-full">
                                     <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
-                                        <div>Symbol</div>
-                                        <div className="text-right">LTP</div>
-                                        <div className="text-right">% Change</div>
+                                        <div>Symbol</div><div className="text-right">LTP</div><div className="text-right">% Change</div>
                                     </div>
-                                    {marketData.topGainers?.slice(0, 5).map((stock: any, idx: number) => (
-                                        <div key={idx} className={`grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors`}>
-                                            <div className="font-bold text-blue-600 hover:underline cursor-pointer">{stock.symbol}</div>
-                                            <div className="text-right font-mono text-slate-800">{stock.ltp?.toFixed(2) || '0.00'}</div>
-                                            <div className="text-right font-mono font-bold text-emerald-600 flex items-center justify-end gap-1"><TrendingUp className="w-3 h-3" /> {stock.percentageChange?.toFixed(2) || '0.00'}%</div>
+                                    {topGainers.slice(0, 5).map((stock, idx) => (
+                                        <div key={idx} className="grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                                            <Link to={`/stock/${stock.symbol}`} className="font-bold text-blue-600 hover:underline">{stock.symbol}</Link>
+                                            <div className="text-right font-mono text-slate-800">{Number(stock.ltp).toFixed(2)}</div>
+                                            <div className="text-right font-mono font-bold text-emerald-600 flex items-center justify-end gap-1"><TrendingUp className="w-3 h-3" /> {Number(stock.percentage_change).toFixed(2)}%</div>
                                         </div>
                                     ))}
-                                    <Link to="/market/gainers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 hover:text-mero-darkTeal border-t border-slate-100 transition-colors uppercase tracking-wider">
+                                    <Link to="/market/gainers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 border-t border-slate-100 transition-colors uppercase tracking-wider">
                                         View All Gainers &rarr;
                                     </Link>
                                 </div>
@@ -257,24 +251,22 @@ export const Landing = () => {
                                 </div>
                                 <div className="w-full">
                                     <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
-                                        <div>Symbol</div>
-                                        <div className="text-right">LTP</div>
-                                        <div className="text-right">% Change</div>
+                                        <div>Symbol</div><div className="text-right">LTP</div><div className="text-right">% Change</div>
                                     </div>
-                                    {marketData.topLosers?.slice(0, 5).map((stock: any, idx: number) => (
-                                        <div key={idx} className={`grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors`}>
-                                            <div className="font-bold text-blue-600 hover:underline cursor-pointer">{stock.symbol}</div>
-                                            <div className="text-right font-mono text-slate-800">{stock.ltp?.toFixed(2) || '0.00'}</div>
-                                            <div className="text-right font-mono font-bold text-rose-600 flex items-center justify-end gap-1"><TrendingDown className="w-3 h-3" /> {stock.percentageChange?.toFixed(2) || '0.00'}%</div>
+                                    {topLosers.slice(0, 5).map((stock, idx) => (
+                                        <div key={idx} className="grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                                            <Link to={`/stock/${stock.symbol}`} className="font-bold text-blue-600 hover:underline">{stock.symbol}</Link>
+                                            <div className="text-right font-mono text-slate-800">{Number(stock.ltp).toFixed(2)}</div>
+                                            <div className="text-right font-mono font-bold text-rose-600 flex items-center justify-end gap-1"><TrendingDown className="w-3 h-3" /> {Number(stock.percentage_change).toFixed(2)}%</div>
                                         </div>
                                     ))}
-                                    <Link to="/market/losers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 hover:text-mero-darkTeal border-t border-slate-100 transition-colors uppercase tracking-wider">
+                                    <Link to="/market/losers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 border-t border-slate-100 transition-colors uppercase tracking-wider">
                                         View All Losers &rarr;
                                     </Link>
                                 </div>
                             </div>
 
-                            {/* Market Summary List */}
+                            {/* Market Summary */}
                             <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
                                 <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
                                     <h3 className="font-bold text-sm tracking-wide">Market Summary</h3>
@@ -282,23 +274,21 @@ export const Landing = () => {
                                 <div className="w-full flex-col flex p-4 space-y-4">
                                     <div className="bg-white border border-slate-200 p-4 rounded shadow-sm hover:shadow-md transition-shadow">
                                         <p className="text-sm text-slate-500 mb-1 font-bold whitespace-nowrap">Total Turnover</p>
-                                        <p className="text-2xl font-bold font-mono text-slate-800">Rs. {(marketData.summary?.totalTurnover || 0).toLocaleString()}</p>
+                                        <p className="text-2xl font-bold font-mono text-slate-800">Rs. {Number(summary.total_turnover).toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white border border-slate-200 p-4 rounded shadow-sm hover:shadow-md transition-shadow">
                                         <p className="text-sm text-slate-500 mb-1 font-bold whitespace-nowrap">Total Volume</p>
-                                        <p className="text-2xl font-bold font-mono text-slate-800">{marketData.summary?.totalVolume?.toLocaleString() || '0'}</p>
+                                        <p className="text-2xl font-bold font-mono text-slate-800">{Number(summary.total_traded_shares).toLocaleString()}</p>
                                     </div>
                                     <div className="flex justify-between items-center border-b border-slate-100 pb-2">
                                         <span className="text-sm font-medium text-slate-600">Market Status</span>
-                                        <span className={`font-bold text-xs px-2 py-1 rounded ${marketData.marketStatus === 'OPEN' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>{marketData.marketStatus}</span>
+                                        <span className={`font-bold text-xs px-2 py-1 rounded ${summary.market_status === 'Open' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>{summary.market_status}</span>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 )}
-
             </div>
 
             <Footer />

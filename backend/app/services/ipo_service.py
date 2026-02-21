@@ -5,7 +5,9 @@ from app.services.nepse_service import NepseService
 
 class IpoService:
     @staticmethod
-    async def get_all_ipos() -> List[Dict[str, Any]]:
+    async def get_all_ipos(status_filter: str = None) -> List[Dict[str, Any]]:
+        """Sample IPO data generated from real company list.
+        In production, connect to a real IPO data source."""
         companies_resp = await NepseService.get_company_list()
         companies = companies_resp.get("companies", [])
         
@@ -35,8 +37,13 @@ class IpoService:
                 "units": f"{random.randint(10, 100)},00,000",
                 "status": status,
                 "opening_date": base_date.date(),
-                "closing_date": (base_date + timedelta(days=4)).date()
+                "closing_date": (base_date + timedelta(days=4)).date(),
+                "_is_sample": True
             })
+        
+        # Apply status filter if provided
+        if status_filter:
+            ipos = [ipo for ipo in ipos if ipo["status"] == status_filter.upper()]
             
         # Sort so OPEN is first
         ipos.sort(key=lambda x: (x["status"] != "OPEN", x["status"] != "UPCOMING", x["closing_date"]))

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
-import api from "../../services/api";
+import { getWallet, executeTrade, getStockBySymbol, getStockHistory } from "../../services/db";
 import { TradingChart } from "../../components/charts/TradingChart";
 import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
+import type { Stock, HistoricalPrice } from "../../types";
 
 export const Trading = () => {
     const [balance, setBalance] = useState<number>(0);
@@ -12,17 +13,15 @@ export const Trading = () => {
     const [action, setAction] = useState<"BUY" | "SELL">("BUY");
     const [message, setMessage] = useState({ text: "", type: "" });
     const [isLoading, setIsLoading] = useState(false);
-    const [depth, setDepth] = useState<any>(null);
-    const [history, setHistory] = useState<any[] | null>(null);
-    const [fundamentals, setFundamentals] = useState<any>(null);
-    const [forecast, setForecast] = useState<any>(null);
+    const [history, setHistory] = useState<HistoricalPrice[] | null>(null);
+    const [stockInfo, setStockInfo] = useState<Stock | null>(null);
 
     // Fetch Wallet Balance
     const fetchWallet = async () => {
         try {
-            const res = await api.get("/portfolio/wallet");
-            setBalance(res.data.balance);
-        } catch (error) {
+            const wallet = await getWallet();
+            if (wallet) setBalance(wallet.balance);
+        } catch {
             // Ignore error
         }
     };
@@ -37,31 +36,22 @@ export const Trading = () => {
             const fetchData = async () => {
                 const sym = symbol.toUpperCase();
                 try {
-                    const [depthRes, histRes, fundRes, forecastRes] = await Promise.allSettled([
-                        api.get(`/market/depth/${sym}`),
-                        api.get(`/market/history/${sym}`),
-                        api.get(`/market/fundamentals/${sym}`),
-                        api.get(`/market/forecast/${sym}`)
+                    const [stockRes, histRes] = await Promise.all([
+                        getStockBySymbol(sym),
+                        getStockHistory(sym),
                     ]);
-
-                    if (depthRes.status === 'fulfilled') setDepth(depthRes.value.data);
-                    if (histRes.status === 'fulfilled') setHistory(histRes.value.data.history);
-                    if (fundRes.status === 'fulfilled') setFundamentals(fundRes.value.data);
-                    if (forecastRes.status === 'fulfilled') setForecast(forecastRes.value.data);
-                } catch (error) {
-                    setDepth(null);
+                    setStockInfo(stockRes);
+                    setHistory(histRes.length > 0 ? histRes : null);
+                } catch {
+                    setStockInfo(null);
                     setHistory(null);
-                    setFundamentals(null);
-                    setForecast(null);
                 }
             };
             const debounce = setTimeout(fetchData, 500);
             return () => clearTimeout(debounce);
         } else {
-            setDepth(null);
+            setStockInfo(null);
             setHistory(null);
-            setFundamentals(null);
-            setForecast(null);
         }
     }, [symbol]);
 
@@ -71,17 +61,18 @@ export const Trading = () => {
         setIsLoading(true);
 
         try {
-            const endpoint = action === "BUY" ? "/trade/buy" : "/trade/sell";
-            const payload = { symbol: symbol.toUpperCase(), quantity };
-
-            await api.post(endpoint, payload);
-            setMessage({ text: `Successfully executed ${action} for ${quantity} shares of ${symbol.toUpperCase()}`, type: "success" });
-            fetchWallet(); // Refresh balance
-            setSymbol("");
-            setQuantity(10);
-        } catch (error: any) {
+            const result = await executeTrade(symbol.toUpperCase(), quantity, action);
+            if (result.success) {
+                setMessage({ text: result.message, type: "success" });
+                fetchWallet(); // Refresh balance
+                setSymbol("");
+                setQuantity(10);
+            } else {
+                setMessage({ text: result.message, type: "error" });
+            }
+        } catch {
             setMessage({
-                text: error.response?.data?.detail || "Failed to execute trade. Please check symbol or balance.",
+                text: "Failed to execute trade. Please check symbol or balance.",
                 type: "error"
             });
         } finally {
@@ -94,10 +85,10 @@ export const Trading = () => {
             <header className="flex justify-between items-end">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Active Trading</h1>
-                    <p className="text-sm text-slate-400 mt-1">Execute paper trades against live NEPSE data</p>
+                    <p className="text-sm text-slate-500 mt-1">Execute paper trades against live NEPSE data</p>
                 </div>
                 <div className="text-right">
-                    <p className="text-sm text-slate-400">Buying Power</p>
+                    <p className="text-sm text-slate-500">Buying Power</p>
                     <p className="text-2xl font-mono text-emerald-400">Rs. {balance.toLocaleString()}</p>
                 </div>
             </header>
@@ -107,12 +98,12 @@ export const Trading = () => {
                 {/* Visualizations Column */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Embedded Chart */}
-                    <Card className="overflow-hidden border-slate-800">
-                        <CardHeader className="bg-slate-900/50 border-b border-slate-800 pb-4">
+                    <Card className="overflow-hidden border-slate-300">
+                        <CardHeader className="bg-white border-b border-slate-300 pb-4">
                             <div className="flex justify-between items-center">
                                 <div>
                                     <CardTitle>Technical Chart</CardTitle>
-                                    <p className="text-sm text-slate-400 mt-1">{symbol ? `Live OHLC for ${symbol.toUpperCase()}` : "Enter a symbol to view chart"}</p>
+                                    <p className="text-sm text-slate-500 mt-1">{symbol ? `Live OHLC for ${symbol.toUpperCase()}` : "Enter a symbol to view chart"}</p>
                                 </div>
                             </div>
                         </CardHeader>
@@ -128,13 +119,13 @@ export const Trading = () => {
                                 ) : !history ? (
                                     <div className="text-slate-500 animate-pulse text-sm">Loading Chart Data...</div>
                                 ) : (
-                                    <TradingChart data={history} />
+                                    <TradingChart data={history.map(h => ({ time: h.date, open: h.open, high: h.high, low: h.low, close: h.close }))} />
                                 )}
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* AI Forecast Panel */}
+                    {/* AI Forecast Panel – Coming Soon */}
                     <Card className="border-indigo-500/30 overflow-hidden relative shadow-[0_0_15px_rgba(99,102,241,0.1)]">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
                         <CardHeader className="pb-2">
@@ -146,70 +137,61 @@ export const Trading = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {!forecast ? (
-                                <div className="text-slate-500 text-sm py-4">Awaiting symbol analysis...</div>
-                            ) : (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <span className={`px-3 py-1 rounded text-sm font-bold shadow-sm ${forecast.signal.includes('BUY') ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : forecast.signal.includes('SELL') ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-slate-500/20 text-slate-300 border border-slate-600'}`}>
-                                                {forecast.signal}
-                                            </span>
-                                            <span className="text-sm text-slate-400">Confidence: <span className="text-white font-bold">{forecast.confidence}%</span></span>
-                                        </div>
-                                        <div className="text-right text-xs">
-                                            <span className="text-emerald-400 font-mono text-sm">Target: {forecast.targetPrice}</span>
-                                            <span className="text-slate-700 mx-3">|</span>
-                                            <span className="text-rose-400 font-mono text-sm">Stop: {forecast.stopLoss}</span>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-slate-300 leading-relaxed bg-slate-900 p-4 rounded-md border border-slate-800 shadow-inner">
-                                        {forecast.reasoning}
-                                    </p>
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-3">
+                                    <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
                                 </div>
-                            )}
+                                <p className="text-sm font-semibold text-indigo-400">Coming Soon</p>
+                                <p className="text-xs text-slate-500 mt-1 max-w-xs">AI-powered market forecasts with buy/sell signals and confidence scores are under development.</p>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    {/* Fundamentals Panel */}
+                    {/* Stock Info Panel */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Company Fundamentals</CardTitle>
+                            <CardTitle>Stock Information</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {!fundamentals ? (
-                                <div className="text-slate-500 text-sm text-center py-8">Select a stock to view fundamentals</div>
+                            {!stockInfo ? (
+                                <div className="text-slate-500 text-sm text-center py-8">Select a stock to view details</div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-400">EPS (TTM)</p>
-                                        <p className="text-lg font-bold text-white">Rs. {fundamentals.eps}</p>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Last Traded Price</p>
+                                        <p className="text-lg font-bold text-slate-900">Rs. {stockInfo.ltp.toLocaleString()}</p>
                                     </div>
-                                    <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-400">P/E Ratio</p>
-                                        <p className={`text-lg font-bold ${fundamentals.peRatio < 15 ? 'text-emerald-400' : 'text-rose-400'}`}>{fundamentals.peRatio}</p>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Change</p>
+                                        <p className={`text-lg font-bold ${stockInfo.percentage_change >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            {stockInfo.point_change >= 0 ? '+' : ''}{stockInfo.point_change.toFixed(2)} ({stockInfo.percentage_change.toFixed(2)}%)
+                                        </p>
                                     </div>
-                                    <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-400">Book Value</p>
-                                        <p className="text-lg font-bold text-white">Rs. {fundamentals.bookValue}</p>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Volume</p>
+                                        <p className="text-lg font-bold text-slate-900">{stockInfo.volume.toLocaleString()}</p>
                                     </div>
-                                    <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-400">Dividend Yield</p>
-                                        <p className="text-lg font-bold text-emerald-400">{fundamentals.dividendYield}%</p>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Turnover</p>
+                                        <p className="text-lg font-bold text-slate-900">Rs. {stockInfo.turnover.toLocaleString()}</p>
                                     </div>
-                                    <div className="bg-slate-900 border border-slate-800 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-400">Paid Up Capital</p>
-                                        <p className="text-sm font-bold text-white mt-1 line-clamp-1">Rs. {(fundamentals.paidUpCapital / 10000000).toFixed(2)} Cr</p>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Open</p>
+                                        <p className="text-sm font-bold text-slate-900 mt-1">Rs. {stockInfo.open_price.toLocaleString()}</p>
                                     </div>
-                                    <div className="md:col-span-3 bg-slate-900 border border-slate-800 p-3 rounded-lg flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs text-slate-400">Sector</p>
-                                            <p className="text-sm font-bold text-blue-400">{fundamentals.sector}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-slate-400">52 Week High / Low</p>
-                                            <p className="text-sm font-mono text-white">{fundamentals['52WeekHigh']} / {fundamentals['52WeekLow']}</p>
-                                        </div>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">High / Low</p>
+                                        <p className="text-sm font-mono text-slate-900 mt-1">{stockInfo.high.toLocaleString()} / {stockInfo.low.toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Previous Close</p>
+                                        <p className="text-sm font-bold text-slate-900 mt-1">Rs. {stockInfo.previous_close.toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
+                                        <p className="text-xs text-slate-500">Sector</p>
+                                        <p className="text-sm font-bold text-blue-600 mt-1">{stockInfo.sector ?? '—'}</p>
                                     </div>
                                 </div>
                             )}
@@ -232,18 +214,18 @@ export const Trading = () => {
 
                             <form onSubmit={handleTrade} className="space-y-6">
                                 {/* Action Toggle */}
-                                <div className="flex rounded-md p-1 bg-slate-950 border border-slate-800">
+                                <div className="flex rounded-md p-1 bg-slate-100 border border-slate-300">
                                     <button
                                         type="button"
                                         onClick={() => setAction("BUY")}
-                                        className={`flex-1 py-2 text-sm font-medium rounded transition-all ${action === 'BUY' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                                        className={`flex-1 py-2 text-sm font-medium rounded transition-all ${action === 'BUY' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                     >
                                         Buy
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setAction("SELL")}
-                                        className={`flex-1 py-2 text-sm font-medium rounded transition-all ${action === 'SELL' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
+                                        className={`flex-1 py-2 text-sm font-medium rounded transition-all ${action === 'SELL' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                     >
                                         Sell
                                     </button>
@@ -251,7 +233,7 @@ export const Trading = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm text-slate-400 font-medium block mb-2">Symbol</label>
+                                        <label className="text-sm text-slate-500 font-medium block mb-2">Symbol</label>
                                         <SearchableDropdown
                                             value={symbol}
                                             onChange={(val) => setSymbol(val)}
@@ -259,14 +241,14 @@ export const Trading = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm text-slate-400 font-medium block mb-2">Quantity</label>
+                                        <label className="text-sm text-slate-500 font-medium block mb-2">Quantity</label>
                                         <input
                                             type="number"
                                             required
                                             min="1"
                                             value={quantity}
                                             onChange={(e) => setQuantity(Number(e.target.value))}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-md p-3 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full bg-white border border-slate-300 rounded-md p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
                                         />
                                     </div>
                                 </div>
@@ -281,73 +263,20 @@ export const Trading = () => {
                         </CardContent>
                     </Card>
 
+                    {/* Market Depth – Coming Soon */}
                     <div>
                         <Card className="h-full">
                             <CardHeader><CardTitle>Market Depth</CardTitle></CardHeader>
                             <CardContent>
-                                {!depth ? (
-                                    <div className="text-sm text-slate-400 italic mt-10 text-center flex flex-col items-center justify-center">
-                                        <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                            <svg className="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        Enter a valid ticker (e.g., NABIL) <br /> to view Live Level 2 Data.
+                                <div className="flex flex-col items-center justify-center py-10 text-center">
+                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                        <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
                                     </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center bg-slate-800/50 p-3 rounded-md">
-                                            <div>
-                                                <p className="text-xs text-slate-400 uppercase">Symbol</p>
-                                                <p className="font-bold text-blue-400">{depth.symbol}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2 text-xs">
-                                            {/* Bids Column */}
-                                            <div>
-                                                <div className="bg-emerald-500/10 text-emerald-400 font-medium p-1 text-center rounded-t border-b border-emerald-500/20">Buy (Bids)</div>
-                                                <div className="grid grid-cols-3 text-slate-400 border-b border-slate-800 py-1">
-                                                    <div className="text-left pl-1">Orders</div>
-                                                    <div className="text-right">Qty</div>
-                                                    <div className="text-right pr-1">Price</div>
-                                                </div>
-                                                {depth.bids.map((bid: any, i: number) => (
-                                                    <div key={i} className="grid grid-cols-3 font-mono py-1 hover:bg-slate-800/50 cursor-default">
-                                                        <div className="text-left pl-1 text-slate-500">{bid.orders}</div>
-                                                        <div className="text-right text-emerald-400">{bid.quantity}</div>
-                                                        <div className="text-right pr-1 font-bold text-slate-200">{bid.price.toFixed(2)}</div>
-                                                    </div>
-                                                ))}
-                                                <div className="grid grid-cols-3 font-mono py-1 border-t border-slate-800 mt-1 text-emerald-500 font-bold bg-emerald-500/5">
-                                                    <div className="col-span-2 text-right pr-2">Total Bid Qty</div>
-                                                    <div className="text-right pr-1">{depth.totalBidQty.toLocaleString()}</div>
-                                                </div>
-                                            </div>
-
-                                            {/* Asks Column */}
-                                            <div>
-                                                <div className="bg-rose-500/10 text-rose-400 font-medium p-1 text-center rounded-t border-b border-rose-500/20">Sell (Asks)</div>
-                                                <div className="grid grid-cols-3 text-slate-400 border-b border-slate-800 py-1">
-                                                    <div className="text-left pl-1">Price</div>
-                                                    <div className="text-right">Qty</div>
-                                                    <div className="text-right pr-1">Orders</div>
-                                                </div>
-                                                {depth.asks.map((ask: any, i: number) => (
-                                                    <div key={i} className="grid grid-cols-3 font-mono py-1 hover:bg-slate-800/50 cursor-default">
-                                                        <div className="text-left pl-1 font-bold text-slate-200">{ask.price.toFixed(2)}</div>
-                                                        <div className="text-right text-rose-400">{ask.quantity}</div>
-                                                        <div className="text-right pr-1 text-slate-500">{ask.orders}</div>
-                                                    </div>
-                                                ))}
-                                                <div className="grid grid-cols-3 font-mono py-1 border-t border-slate-800 mt-1 text-rose-500 font-bold bg-rose-500/5">
-                                                    <div className="col-span-2 text-right pr-2">Total Ask Qty</div>
-                                                    <div className="text-right pr-1">{depth.totalAskQty.toLocaleString()}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+                                    <p className="text-sm font-semibold text-slate-700">Coming Soon</p>
+                                    <p className="text-xs text-slate-500 mt-1 max-w-xs">Live Level 2 order book data with bid/ask depth will be available in a future update.</p>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

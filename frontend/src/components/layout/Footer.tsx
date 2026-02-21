@@ -1,6 +1,9 @@
 import { ChevronUp } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 export const Footer = () => {
+    const navigate = useNavigate();
+
     return (
         <footer className="w-full font-sans">
             {/* Main Footer Body */}
@@ -9,31 +12,31 @@ export const Footer = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
                         {/* Column 1 */}
                         <div className="space-y-3 text-sm">
-                            <a href="#" className="block hover:underline">Home</a>
-                            <a href="#" className="block hover:underline">Latest Market</a>
-                            <a href="#" className="block hover:underline">Daily Stock Quotes</a>
-                            <a href="#" className="block hover:underline">Floorsheet</a>
-                            <a href="#" className="block hover:underline">Indices</a>
-                            <a href="#" className="block hover:underline">Top Brokers</a>
-                            <a href="#" className="block hover:underline">Top Gainers</a>
-                            <a href="#" className="block hover:underline">Top Losers</a>
+                            <Link to="/" className="block hover:underline">Home</Link>
+                            <Link to="/market" className="block hover:underline">Latest Market</Link>
+                            <Link to="/market" className="block hover:underline">Daily Stock Quotes</Link>
+                            <Link to="/market" className="block hover:underline">Floorsheet</Link>
+                            <Link to="/reports" className="block hover:underline">Indices</Link>
+                            <Link to="/market" className="block hover:underline">Top Brokers</Link>
+                            <Link to="/market" className="block hover:underline">Top Gainers</Link>
+                            <Link to="/market" className="block hover:underline">Top Losers</Link>
                         </div>
                         {/* Column 2 */}
                         <div className="space-y-3 text-sm">
-                            <a href="#" className="block hover:underline">Latest News</a>
-                            <a href="#" className="block hover:underline">Popular News</a>
-                            <a href="#" className="block hover:underline">Announcements</a>
-                            <a href="#" className="block hover:underline">Annual Reports</a>
-                            <a href="#" className="block hover:underline">Quarterly Reports</a>
-                            <a href="#" className="block hover:underline">Companies</a>
-                            <a href="#" className="block hover:underline">Brokers</a>
+                            <Link to="/news" className="block hover:underline">Latest News</Link>
+                            <Link to="/news" className="block hover:underline">Popular News</Link>
+                            <Link to="/announcements" className="block hover:underline">Announcements</Link>
+                            <Link to="/reports" className="block hover:underline">Annual Reports</Link>
+                            <Link to="/reports" className="block hover:underline">Quarterly Reports</Link>
+                            <Link to="/market" className="block hover:underline">Companies</Link>
+                            <Link to="/market" className="block hover:underline">Brokers</Link>
                         </div>
                         {/* Column 3 */}
                         <div className="space-y-3 text-sm">
-                            <a href="mailto:oshimpathan@gmail.com" className="block hover:underline">Contact Us</a>
-                            <a href="#" className="block hover:underline">Video Tutorials</a>
+                            <Link to="/contact" className="block hover:underline">Contact Us</Link>
+                            <Link to="/services" className="block hover:underline">Video Tutorials</Link>
                             <a href="#bank-details" className="block hover:underline">Bank Accounts</a>
-                            <a href="#" className="block hover:underline">About Us</a>
+                            <Link to="/about" className="block hover:underline">About Us</Link>
                         </div>
 
                         {/* Column 4 (Spans 2 on large) */}
@@ -88,7 +91,7 @@ export const Footer = () => {
                         </div>
 
                         <div className="pt-6 lg:pt-0">
-                            <button className="bg-white text-slate-800 font-medium px-6 py-2 rounded shadow-sm hover:bg-slate-100 transition-colors">
+                            <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-white text-slate-800 font-medium px-6 py-2 rounded shadow-sm hover:bg-slate-100 transition-colors">
                                 Create Free Account
                             </button>
                         </div>

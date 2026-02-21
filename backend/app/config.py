@@ -1,25 +1,37 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "ShareSathi MVP API"
-    VERSION: str = "0.1.0"
+    VERSION: str = "0.2.0"
     API_V1_STR: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    SECRET_KEY: str = "dev-secret-change-in-production-min-32-chars!!"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # CORS - comma separated origins, or ["*"] for dev
+    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     # Database
-    DATABASE_URL: str
+    DATABASE_URL: str = "sqlite+aiosqlite:///./sharesathi_dev.db"
 
     # Redis
-    REDIS_URL: str
+    REDIS_URL: str = "redis://localhost:6379/0"
 
     # Nepse API
     NEPSE_API_TIMEOUT: int = 10
 
     # Apify
     APIFY_API_KEY: str | None = None
+
+    # Rate limiting
+    RATE_LIMIT_PER_MINUTE: int = 60
+
+    @property
+    def cors_origins(self) -> List[str]:
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
     model_config = SettingsConfigDict(
         env_file=".env", 

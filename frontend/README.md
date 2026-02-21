@@ -1,73 +1,73 @@
-# React + TypeScript + Vite
+# ShareSathi Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript frontend for the ShareSathi paper trading platform.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** with TypeScript 5.9
+- **Vite 7** for dev server and builds
+- **Tailwind CSS v4** for styling
+- **Zustand 5** for state management
+- **React Router DOM 7** for routing (18 routes)
+- **Recharts** + **Lightweight Charts** for data visualization
+- **InsForge SDK** for backend-as-a-service (auth, database, storage)
 
-## React Compiler
+## Pages
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Public (no auth required)
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | Landing | Platform overview |
+| `/login` | Login | Email/password + OAuth (Google, GitHub) |
+| `/verify-email` | Verify Email | OTP email verification |
+| `/about` | About | Team and mission |
+| `/contact` | Contact | Contact form |
+| `/market` | Market | Live NEPSE data, indices, gainers/losers |
+| `/market/:type` | Market Data | Filtered market view |
+| `/stock/:symbol` | Stock Detail | Price chart, depth, fundamentals |
+| `/news` | News | Live financial news |
+| `/ipo` | IPO | IPO listings |
+| `/announcements` | Announcements | Market announcements |
+| `/reports` | Reports | Market reports |
+| `/services` | Services | Platform services |
+| `/portfolio-info` | Portfolio Info | Portfolio feature overview |
 
-## Expanding the ESLint configuration
+### Protected (auth required)
+| Route | Page | Description |
+|-------|------|-------------|
+| `/dashboard` | Dashboard | Portfolio summary, P&L |
+| `/trade` | Trading | Buy/sell with fee calculation |
+| `/portfolio` | Portfolio | Holdings management |
+| `/watchlist` | Watchlist | Tracked stocks |
+| `/profile` | Profile | Account settings |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Setup
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env    # Fill in VITE_INSFORGE_URL and VITE_INSFORGE_ANON_KEY
+npm install
+npm run dev             # http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build           # Output in dist/
+npm run preview         # Preview production build
 ```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_INSFORGE_URL` | Yes | InsForge project URL |
+| `VITE_INSFORGE_ANON_KEY` | Yes | InsForge anonymous JWT token |
+| `VITE_API_URL` | No | Backend API URL (default: `http://localhost:8000/api/v1`) |
+| `VITE_WS_URL` | No | WebSocket URL (default: `ws://localhost:8000`) |
+
+## Key Architecture Decisions
+
+- **InsForge Direct**: Frontend reads/writes to InsForge PostgREST DB directly (not through FastAPI)
+- **RPC-First Trading**: Trade execution tries server-side RPC first, falls back to client-side
+- **ErrorBoundary**: Global React error boundary for graceful crash recovery
+- **Fee Estimation**: Client-side fee calculator mirrors backend NEPSE tiers for UI display

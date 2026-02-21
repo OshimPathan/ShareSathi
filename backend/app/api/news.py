@@ -10,6 +10,5 @@ async def read_latest_news(category: str = "All") -> Dict[str, Any]:
 
 @router.get("/categories")
 async def read_news_categories() -> Dict[str, Any]:
-    return {
-        "categories": ["All", "Corporate", "Market", "Hydropower", "IPO", "Sector Analysis", "Economy"]
-    }
+    categories = await NewsService.get_categories()
+    return {"categories": categories}
