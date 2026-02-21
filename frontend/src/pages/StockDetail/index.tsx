@@ -1,14 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import PublicLayout from "../../components/layout/PublicLayout";
 import { useAuthStore } from "../../store/authStore";
-import { getStockBySymbol, getStockHistory, getWallet, executeTrade } from "../../services/db";
+import { getStockBySymbol, getStockHistory, getWallet, executeTrade, getStocksBySector } from "../../services/db";
 import type { Stock, HistoricalPrice } from "../../types";
 import { ArrowUpRight, ArrowDownRight, Zap, BarChart3, Activity, ShieldCheck, Info, LogIn, Loader2 } from "lucide-react";
 import { StockDetailSkeleton } from "../../components/ui/Skeleton";
+import { TradingChart } from "../../components/charts/TradingChart";
+import { useNotificationStore } from "../../store/notificationStore";
 
 export const StockDetail = () => {
     const { symbol } = useParams();
@@ -16,6 +18,9 @@ export const StockDetail = () => {
     const [details, setDetails] = useState<Stock | null>(null);
     const [history, setHistory] = useState<HistoricalPrice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [timeframe, setTimeframe] = useState<'1W' | '1M' | '3M' | '6M' | '1Y' | 'ALL'>('3M');
+    const [peers, setPeers] = useState<Stock[]>([]);
+    const addNotification = useNotificationStore((s) => s.addNotification);
 
     // Trading States
     const [balance, setBalance] = useState<number>(0);
@@ -37,6 +42,14 @@ export const StockDetail = () => {
             setDetails(results[0] as Stock | null);
             setHistory(results[1] as HistoricalPrice[]);
             if (isAuthenticated && results[2]) setBalance((results[2] as { balance: number }).balance);
+            // Fetch peers from same sector
+            const stockData = results[0] as Stock | null;
+            if (stockData?.sector) {
+                try {
+                    const sectorStocks = await getStocksBySector(stockData.sector);
+                    setPeers(sectorStocks.filter(s => s.symbol !== stockData.symbol).slice(0, 5));
+                } catch {}
+            }
         } catch {
             // Ignore error
         } finally {
@@ -59,6 +72,12 @@ export const StockDetail = () => {
             const result = await executeTrade(symbol.toUpperCase(), quantity, action);
             if (result.success) {
                 setMessage({ text: result.message, type: "success" });
+                addNotification({
+                    type: 'trade',
+                    title: `${action} ${symbol.toUpperCase()} Executed`,
+                    message: `${action === 'BUY' ? 'Bought' : 'Sold'} ${quantity} units of ${symbol.toUpperCase()} at Rs. ${currentPrice.toFixed(2)}`,
+                    actionUrl: '/portfolio',
+                });
                 const wallet = await getWallet();
                 if (wallet) setBalance(wallet.balance);
                 setQuantity(10);
@@ -89,6 +108,26 @@ export const StockDetail = () => {
     const estimatedCost = currentPrice * quantity;
     const isPositive = pctChange >= 0;
 
+    // Filter history by timeframe
+    const filteredHistory = useMemo(() => {
+        if (timeframe === 'ALL') return history;
+        const now = new Date();
+        const days: Record<string, number> = { '1W': 7, '1M': 30, '3M': 90, '6M': 180, '1Y': 365 };
+        const cutoff = new Date(now.getTime() - days[timeframe] * 86400000);
+        return history.filter(h => new Date(h.date) >= cutoff);
+    }, [history, timeframe]);
+
+    const chartData = useMemo(() =>
+        filteredHistory.map(h => ({
+            time: h.date,
+            open: h.open,
+            high: h.high,
+            low: h.low,
+            close: h.close,
+            volume: h.volume,
+        })),
+    [filteredHistory]);
+
     return (
         <PublicLayout>
         <div className="space-y-6">
@@ -115,41 +154,33 @@ export const StockDetail = () => {
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-slate-900">
-                                <Activity className="w-4 h-4 text-mero-teal" />
-                                Historical Price
-                            </CardTitle>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <Activity className="w-4 h-4 text-mero-teal" />
+                                    Price Chart
+                                </CardTitle>
+                                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
+                                    {(['1W', '1M', '3M', '6M', '1Y', 'ALL'] as const).map(tf => (
+                                        <button
+                                            key={tf}
+                                            onClick={() => setTimeframe(tf)}
+                                            className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-all ${
+                                                timeframe === tf
+                                                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                            }`}
+                                        >
+                                            {tf}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </CardHeader>
-                        <CardContent className="h-80">
-                            {history.length > 0 ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={history} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={isPositive ? "#10b981" : "#f43f5e"} stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor={isPositive ? "#10b981" : "#f43f5e"} stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                                        <XAxis dataKey="date" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} minTickGap={30} />
-                                        <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} domain={['dataMin - 10', 'auto']} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', fontSize: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="close"
-                                            name="Close Price"
-                                            stroke={isPositive ? "#10b981" : "#f43f5e"}
-                                            strokeWidth={2}
-                                            fillOpacity={1}
-                                            fill="url(#colorPrice)"
-                                            connectNulls
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                        <CardContent>
+                            {chartData.length > 0 ? (
+                                <TradingChart data={chartData} showControls={true} />
                             ) : (
-                                <div className="h-full flex justify-center items-center text-slate-400 text-sm">No historical data available</div>
+                                <div className="h-[400px] flex justify-center items-center text-slate-400 text-sm">No historical data available</div>
                             )}
                         </CardContent>
                     </Card>
@@ -239,6 +270,51 @@ export const StockDetail = () => {
                                     ))}
                                 </div>
                             </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Peer Comparison */}
+                    {peers.length > 0 && (
+                        <Card className="animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <BarChart3 className="w-4 h-4 text-indigo-500" />
+                                    Sector Peers ({details?.sector})
+                                </CardTitle>
+                            </CardHeader>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b border-slate-200 dark:border-slate-700">
+                                            <th className="px-4 py-2 text-left font-semibold text-slate-500 dark:text-slate-400 text-xs">Symbol</th>
+                                            <th className="px-4 py-2 text-right font-semibold text-slate-500 dark:text-slate-400 text-xs">LTP</th>
+                                            <th className="px-4 py-2 text-right font-semibold text-slate-500 dark:text-slate-400 text-xs">Change</th>
+                                            <th className="px-4 py-2 text-right font-semibold text-slate-500 dark:text-slate-400 text-xs">Vol</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {peers.map(p => {
+                                            const pctChg = Number(p.percentage_change || 0);
+                                            return (
+                                                <tr key={p.symbol} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                                                    <td className="px-4 py-2">
+                                                        <Link to={`/stock/${p.symbol}`} className="font-bold text-mero-teal hover:underline text-xs">{p.symbol}</Link>
+                                                    </td>
+                                                    <td className="px-4 py-2 text-right font-mono text-xs text-slate-700 dark:text-slate-300">
+                                                        Rs. {Number(p.ltp).toLocaleString()}
+                                                    </td>
+                                                    <td className={`px-4 py-2 text-right font-mono text-xs font-bold ${pctChg >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                        {pctChg >= 0 ? '+' : ''}{pctChg.toFixed(2)}%
+                                                    </td>
+                                                    <td className="px-4 py-2 text-right font-mono text-xs text-slate-500">
+                                                        {Number(p.volume).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
                         </Card>
                     )}
                 </div>

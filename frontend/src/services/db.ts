@@ -492,3 +492,146 @@ export async function getMarketBundle(): Promise<MarketBundle | null> {
   if (!summary) return null;
   return { summary, subIndices, topGainers, topLosers, topTurnovers };
 }
+
+// ─── Leaderboard (public) ──────────────────────────────────
+
+export interface LeaderboardEntry {
+  user_id: string;
+  user_name: string;
+  total_investment: number;
+  total_current_value: number;
+  total_pnl: number;
+  pnl_percentage: number;
+  holdings_count: number;
+  total_trades: number;
+}
+
+export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
+  // 1. Get all portfolio rows (public data — no sensitive info)
+  const { data: allHoldings, error: hErr } = await insforge.database
+    .from('portfolio')
+    .select('user_id, symbol, quantity, average_buy_price');
+  if (hErr || !allHoldings || allHoldings.length === 0) return [];
+
+  // 2. Get current stock prices
+  const symbols = [...new Set((allHoldings as PortfolioItem[]).map(h => h.symbol))];
+  const { data: stocks } = await insforge.database
+    .from('stocks')
+    .select('symbol, ltp')
+    .in('symbol', symbols);
+  const priceMap: Record<string, number> = {};
+  (stocks || []).forEach((s: any) => { priceMap[s.symbol] = Number(s.ltp); });
+
+  // 3. Get user names
+  const userIds = [...new Set((allHoldings as PortfolioItem[]).map(h => h.user_id))];
+  // Note: profiles table may not exist, we'll use a fallback
+  let nameMap: Record<string, string> = {};
+  try {
+    const { data: profiles } = await insforge.database
+      .from('profiles')
+      .select('id, name')
+      .in('id', userIds);
+    (profiles || []).forEach((p: any) => { nameMap[p.id] = p.name || 'Anonymous'; });
+  } catch {
+    // profiles table doesn't exist, use fallback
+  }
+
+  // 4. Get trade counts per user
+  const { data: trades } = await insforge.database
+    .from('transactions')
+    .select('user_id');
+  const tradeCountMap: Record<string, number> = {};
+  (trades || []).forEach((t: any) => {
+    tradeCountMap[t.user_id] = (tradeCountMap[t.user_id] || 0) + 1;
+  });
+
+  // 5. Aggregate per user
+  const userMap: Record<string, { investment: number; currentValue: number; holdings: number }> = {};
+  (allHoldings as PortfolioItem[]).forEach(h => {
+    if (!userMap[h.user_id]) userMap[h.user_id] = { investment: 0, currentValue: 0, holdings: 0 };
+    const inv = h.quantity * h.average_buy_price;
+    const cur = h.quantity * (priceMap[h.symbol] || 0);
+    userMap[h.user_id].investment += inv;
+    userMap[h.user_id].currentValue += cur;
+    userMap[h.user_id].holdings += 1;
+  });
+
+  const entries: LeaderboardEntry[] = Object.entries(userMap).map(([uid, v]) => ({
+    user_id: uid,
+    user_name: nameMap[uid] || `Trader-${uid.slice(0, 6)}`,
+    total_investment: v.investment,
+    total_current_value: v.currentValue,
+    total_pnl: v.currentValue - v.investment,
+    pnl_percentage: v.investment > 0 ? ((v.currentValue - v.investment) / v.investment) * 100 : 0,
+    holdings_count: v.holdings,
+    total_trades: tradeCountMap[uid] || 0,
+  }));
+
+  // Sort by P/L percentage desc
+  entries.sort((a, b) => b.pnl_percentage - a.pnl_percentage);
+  return entries;
+}
+
+// ─── Public Portfolio (anyone can view by user_id) ─────────
+
+export interface PublicPortfolioData {
+  user_name: string;
+  assets: PortfolioAsset[];
+  summary: PortfolioSummary;
+  total_trades: number;
+}
+
+export async function getPublicPortfolio(userId: string): Promise<PublicPortfolioData | null> {
+  const { data: holdings, error } = await insforge.database
+    .from('portfolio')
+    .select('user_id, symbol, quantity, average_buy_price')
+    .eq('user_id', userId);
+  if (error || !holdings || holdings.length === 0) return null;
+
+  const symbols = (holdings as PortfolioItem[]).map(h => h.symbol);
+  const { data: stocks } = await insforge.database
+    .from('stocks')
+    .select('symbol, ltp, sector, company_name')
+    .in('symbol', symbols);
+
+  const stockMap: Record<string, { ltp: number; sector: string | null; company_name: string }> = {};
+  (stocks || []).forEach((s: any) => {
+    stockMap[s.symbol] = { ltp: Number(s.ltp), sector: s.sector, company_name: s.company_name };
+  });
+
+  let totalInvestment = 0;
+  let totalCurrentValue = 0;
+
+  const assets: PortfolioAsset[] = (holdings as PortfolioItem[]).map(h => {
+    const stock = stockMap[h.symbol] || { ltp: 0, sector: null, company_name: h.symbol };
+    const investment = h.quantity * h.average_buy_price;
+    const currentValue = h.quantity * stock.ltp;
+    const pnl = currentValue - investment;
+    const pnlPercentage = investment > 0 ? (pnl / investment) * 100 : 0;
+    totalInvestment += investment;
+    totalCurrentValue += currentValue;
+    return { ...h, current_price: stock.ltp, investment, current_value: currentValue, pnl, pnl_percentage: pnlPercentage, sector: stock.sector, company_name: stock.company_name };
+  });
+
+  const totalPnl = totalCurrentValue - totalInvestment;
+  const overallPnlPercentage = totalInvestment > 0 ? (totalPnl / totalInvestment) * 100 : 0;
+
+  // Name
+  let userName = `Trader-${userId.slice(0, 6)}`;
+  try {
+    const { data: profiles } = await insforge.database.from('profiles').select('name').eq('id', userId).limit(1);
+    if (profiles && profiles.length > 0 && (profiles[0] as any).name) userName = (profiles[0] as any).name;
+  } catch {}
+
+  // Trade count
+  const { data: trades } = await insforge.database.from('transactions').select('id').eq('user_id', userId);
+  const totalTrades = trades?.length || 0;
+
+  return {
+    user_name: userName,
+    assets,
+    summary: { total_investment: totalInvestment, total_current_value: totalCurrentValue, total_pnl: totalPnl, overall_pnl_percentage: overallPnlPercentage },
+    total_trades: totalTrades,
+  };
+}
+

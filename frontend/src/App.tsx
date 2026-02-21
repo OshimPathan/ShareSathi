@@ -35,6 +35,9 @@ const AdminDashboard = lazy(() => import('./pages/Admin'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 const LearnPage = lazy(() => import('./pages/Learn'));
 const ReferralPage = lazy(() => import('./pages/Referral'));
+const ScreenerPage = lazy(() => import('./pages/Screener'));
+const LeaderboardPage = lazy(() => import('./pages/Leaderboard'));
+const PublicPortfolioPage = lazy(() => import('./pages/PublicPortfolio'));
 
 function PageLoader() {
   return (
@@ -69,6 +72,9 @@ function App() {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/portfolio-info" element={<PortfolioInfoPage />} />
         <Route path="/learn" element={<LearnPage />} />
+        <Route path="/screener" element={<ScreenerPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/portfolio/public/:userId" element={<PublicPortfolioPage />} />
         <Route path="/stock/:symbol" element={<StockDetail />} />
 
         {/* Wrap all authenticated pages in ProtectedRoute */}

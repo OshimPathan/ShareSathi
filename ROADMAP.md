@@ -81,25 +81,33 @@ Become Nepal's #1 stock market learning platform — empowering beginner to inte
 | 4.5 | Profile page with subscription tier display + upgrade CTA | ✅ Done |
 | 4.6 | Email notifications (trade confirmations, price alerts, weekly digest) | ⬜ Planned |
 | 4.7 | Push notifications (mobile web) | ⬜ Planned |
-| 4.8 | Referral program ("Invite friends, get 1 month Basic free") | ⬜ Planned |
+| 4.8 | Referral program ("Invite friends, get 1 month Basic free") | ✅ Done |
 | 4.9 | Custom domain + SSL (sharesathi.com) | ⬜ Planned |
 | 4.10 | CDN for static assets | ⬜ Planned |
+| 4.11 | Dark mode + Theme system (light/dark/system) | ✅ Done |
+| 4.12 | Skeleton loaders + Error boundary | ✅ Done |
+| 4.13 | PWA (manifest.json + service worker) | ✅ Done |
+| 4.14 | Accessibility (skip links, ARIA labels) | ✅ Done |
+| 4.15 | i18n infrastructure (English + Nepali) | ✅ Done |
 
 ---
 
-## Phase 5: Product Expansion (PLANNED — Q3 2026)
+## Phase 5: Product Expansion (IN PROGRESS)
 
 **Goal:** Become indispensable for NEPSE investors
 
-| # | Item | Target |
+| # | Item | Status |
 |---|------|--------|
-| 5.1 | Real company fundamentals from NEPSE filings / Mero Lagani scraping | May 2026 |
-| 5.2 | AI-powered stock screener (real ML models, not simulated) | June 2026 |
-| 5.3 | Social features (public portfolios, leaderboard, competitions) | May 2026 |
-| 5.4 | Mobile app (React Native or PWA) | July 2026 |
-| 5.5 | Broker API integration (TMS/C-ASBA link for real trading) | Q4 2026 |
-| 5.6 | Educational content (tutorials, courses, quizzes) | June 2026 |
-| 5.7 | Multi-language support (Nepali/English) | May 2026 |
+| 5.1 | Company fundamentals + sector peer comparison | ✅ Done |
+| 5.2 | Stock screener with advanced filters & sorting | ✅ Done |
+| 5.3 | Social features (public portfolios, leaderboard) | ✅ Done |
+| 5.4 | Mobile app (PWA — installed via browser) | ✅ Done |
+| 5.5 | Broker API integration (TMS/C-ASBA link for real trading) | ⬜ Planned |
+| 5.6 | Educational content (6 modules, 16 NEPSE lessons) | ✅ Done |
+| 5.7 | Multi-language support (Nepali/English toggle) | ✅ Done |
+| 5.8 | Advanced candlestick charts with SMA/EMA indicators | ✅ Done |
+| 5.9 | In-app notification center (trade, alert, market, achievements) | ✅ Done |
+| 5.10 | Chart timeframe selector (1W/1M/3M/6M/1Y/ALL) | ✅ Done |
 
 ---
 

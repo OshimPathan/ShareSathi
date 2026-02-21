@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, NavLink, Link } from "react-router-dom";
-import { User, LogOut, Bell, Settings, LayoutDashboard, LineChart, Briefcase, Eye, Search, Menu, X, Sun, Moon, Monitor } from "lucide-react";
+import { User, LogOut, Settings, LayoutDashboard, LineChart, Briefcase, Eye, Search, Menu, X, Sun, Moon, Monitor } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { SearchableDropdown } from "../ui/SearchableDropdown";
 import { useAuthStore } from "../../store/authStore";
 import { useThemeStore } from "../../store/themeStore";
 import { useI18nStore, type Locale } from "../../store/i18nStore";
+import { NotificationBell } from "../ui/NotificationBell";
 
 type NavKey = "dashboard" | "trading" | "portfolio" | "watchlist";
 const navItems: { to: string; key: NavKey; icon: typeof LayoutDashboard }[] = [
@@ -17,12 +18,10 @@ const navItems: { to: string; key: NavKey; icon: typeof LayoutDashboard }[] = [
 
 export const Navbar = ({ className }: { className?: string }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
-    const notifRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { user, logout } = useAuthStore();
     const { theme, setTheme } = useThemeStore();
@@ -47,7 +46,6 @@ export const Navbar = ({ className }: { className?: string }) => {
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (profileRef.current && !profileRef.current.contains(e.target as Node)) setIsProfileOpen(false);
-            if (notifRef.current && !notifRef.current.contains(e.target as Node)) setIsNotificationsOpen(false);
         };
         document.addEventListener("mousedown", handler);
         return () => document.removeEventListener("mousedown", handler);
@@ -157,50 +155,7 @@ export const Navbar = ({ className }: { className?: string }) => {
                         </button>
 
                         {/* Notifications */}
-                        <div ref={notifRef} className="relative z-[100]">
-                            <button
-                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                                className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800"
-                                aria-label="Notifications"
-                                aria-expanded={isNotificationsOpen}
-                            >
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
-                            </button>
-
-                            {isNotificationsOpen && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden animate-scale-in origin-top-right z-[100] dark:bg-slate-800 dark:border-slate-700 dark:shadow-slate-900/50">
-                                    <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center dark:border-slate-700">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Notifications</p>
-                                        <button className="text-xs text-mero-teal hover:underline font-medium">Mark all read</button>
-                                    </div>
-                                    <div className="max-h-72 overflow-y-auto">
-                                        <div className="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer dark:border-slate-700 dark:hover:bg-slate-700/50">
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-mero-teal/10 flex items-center justify-center shrink-0 mt-0.5">
-                                                    <Bell className="w-4 h-4 text-mero-teal" />
-                                                </div>
-                                                <div>
-                                                     <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">Welcome!</p>
-                                                    <p className="text-xs text-slate-500 mt-0.5 dark:text-slate-400">Your ShareSathi dashboard is ready.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer dark:hover:bg-slate-700/50">
-                                            <div className="flex items-start gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
-                                                    <LineChart className="w-4 h-4 text-emerald-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-semibold text-emerald-700">Market Update</p>
-                                                    <p className="text-xs text-slate-500 mt-0.5">NEPSE closed with positive sentiment today.</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <NotificationBell />
 
                         {/* Profile */}
                         <div ref={profileRef} className="relative z-[100]">
