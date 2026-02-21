@@ -16,10 +16,10 @@ export const Sidebar = ({ className }: { className?: string }) => {
             <div className="p-6 border-b border-slate-700 flex items-center gap-3">
                 <img src="/logo.png" alt="ShareSathi Logo" className="w-10 h-10 object-contain rounded-md bg-white p-0.5" />
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent leading-none">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-mero-teal to-emerald-400 bg-clip-text text-transparent leading-none">
                         ShareSathi
                     </h1>
-                    <p className="text-xs text-slate-400 mt-1">AI Stock Analytics</p>
+                    <p className="text-xs text-slate-400 mt-1">Paper Trading Platform</p>
                 </div>
             </div>
 
@@ -30,9 +30,9 @@ export const Sidebar = ({ className }: { className?: string }) => {
                         to={link.href}
                         className={({ isActive }) =>
                             cn(
-                                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium",
+                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm font-medium",
                                 isActive
-                                    ? "bg-blue-600/10 text-blue-400"
+                                    ? "bg-mero-teal/10 text-mero-teal"
                                     : "text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                             )
                         }

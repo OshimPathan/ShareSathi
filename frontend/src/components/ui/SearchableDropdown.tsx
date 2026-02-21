@@ -56,13 +56,13 @@ export const SearchableDropdown = ({ value, onChange, placeholder = "Search comp
                     }}
                     onFocus={() => setIsOpen(true)}
                     placeholder={placeholder}
-                    className="w-full bg-white border border-slate-300 rounded-md p-3 pl-10 text-sm text-slate-800 focus:ring-2 focus:ring-mero-teal outline-none uppercase placeholder:normal-case placeholder:text-slate-400"
+                    className="w-full bg-white border border-slate-200 rounded-xl p-3 pl-10 text-sm text-slate-800 focus:ring-2 focus:ring-mero-teal/30 focus:border-mero-teal outline-none uppercase placeholder:normal-case placeholder:text-slate-400 transition-colors"
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             </div>
 
             {isOpen && searchQuery && (
-                <ul className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-md shadow-xl">
+                <ul className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl">
                     {filteredCompanies.length === 0 ? (
                         <li className="p-3 text-sm text-slate-500 text-center">No companies found.</li>
                     ) : (
@@ -77,10 +77,10 @@ export const SearchableDropdown = ({ value, onChange, placeholder = "Search comp
                                 className="px-4 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 flex justify-between items-center"
                             >
                                 <div>
-                                    <p className="font-bold text-blue-600 text-sm">{c.symbol}</p>
+                                    <p className="font-bold text-mero-teal text-sm">{c.symbol}</p>
                                     <p className="text-xs text-slate-500 truncate max-w-[200px]">{c.company_name}</p>
                                 </div>
-                                <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500 font-medium">{(c.sector || '').slice(0, 15)}</span>
+                                <span className="text-xs bg-slate-50 px-2 py-1 rounded-full text-slate-500 font-medium border border-slate-200">{(c.sector || '').slice(0, 15)}</span>
                             </li>
                         ))
                     )}

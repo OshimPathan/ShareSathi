@@ -121,7 +121,7 @@ export const MarketPage = () => {
                     <>
                         {/* Overview Tab */}
                         {activeTab === 'overview' && summary && (
-                            <div className="space-y-6 animate-in fade-in duration-300">
+                            <div className="space-y-6 animate-fade-in">
                                 {/* Summary Cards */}
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
@@ -246,7 +246,7 @@ export const MarketPage = () => {
 
                         {/* Live Market Tab */}
                         {activeTab === 'live' && (
-                            <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-in fade-in duration-300">
+                            <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-fade-in">
                                 <div className="bg-mero-teal text-white px-6 py-3 flex justify-between items-center">
                                     <h3 className="font-bold tracking-wide flex items-center gap-2">
                                         <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Live Market Watch
@@ -322,7 +322,7 @@ export const MarketPage = () => {
 
                         {/* Companies Tab */}
                         {activeTab === 'companies' && (
-                            <div className="space-y-4 animate-in fade-in duration-300">
+                            <div className="space-y-4 animate-fade-in">
                                 <div className="flex flex-col md:flex-row gap-3">
                                     <input
                                         type="text"
@@ -390,7 +390,7 @@ export const MarketPage = () => {
 
 /* Reusable Data Table Component */
 const DataTable = ({ title, titleColor, data, type }: { title: string; titleColor: string; data: Stock[]; type: string }) => (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-in fade-in duration-300">
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-fade-in">
         <div className={`${titleColor} text-white px-6 py-3 flex justify-between items-center`}>
             <h3 className="font-bold tracking-wide uppercase">{title}</h3>
             <span className="text-xs bg-white/20 px-2 py-1 rounded">

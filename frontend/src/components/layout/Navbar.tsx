@@ -39,6 +39,21 @@ export const Navbar = ({ className }: { className?: string }) => {
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
+    /* ⌘K / Ctrl+K keyboard shortcut to toggle search */
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                setIsSearchOpen(prev => !prev);
+            }
+            if (e.key === "Escape") {
+                setIsSearchOpen(false);
+            }
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, []);
+
     const handleLogout = async () => {
         await logout();
         navigate("/login");
