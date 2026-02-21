@@ -9,6 +9,5 @@ from app.services.ipo_service import IpoService
 router = APIRouter()
 
 @router.get("", response_model=List[IpoResponse])
-async def get_all_ipos(db: AsyncSession = Depends(get_db)):
-    ipo_service = IpoService(db)
-    return await ipo_service.get_all_ipos()
+async def get_all_ipos():
+    return await IpoService.get_all_ipos()

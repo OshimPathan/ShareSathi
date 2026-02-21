@@ -8,8 +8,12 @@ export default {
         extend: {
             colors: {
                 slate: {
-                    850: '#151e2e',
-                    950: '#0b0f19',
+                },
+                mero: {
+                    teal: '#238b96',
+                    darkTeal: '#1c6f78',
+                    orange: '#eda34c',
+                    darkOrange: '#d68e36'
                 }
             }
         },

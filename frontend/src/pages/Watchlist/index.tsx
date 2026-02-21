@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Star, BellRing, Trash2, Plus } from "lucide-react";
 import api from "../../services/api";
+import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
 
 interface WatchlistItem {
     id: number;
@@ -87,13 +88,13 @@ export const Watchlist = () => {
                         My Tracked Stocks
                     </CardTitle>
                     <form onSubmit={handleAdd} className="flex gap-2">
-                        <input
-                            type="text"
-                            placeholder="Enter symbol (e.g., NICA)"
-                            value={newSymbol}
-                            onChange={(e) => setNewSymbol(e.target.value)}
-                            className="bg-slate-900 border border-slate-700 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
+                        <div className="flex-1 max-w-sm">
+                            <SearchableDropdown
+                                value={newSymbol}
+                                onChange={(val) => setNewSymbol(val)}
+                                placeholder="Search Company..."
+                            />
+                        </div>
                         <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center gap-1">
                             <Plus className="w-4 h-4" /> Add
                         </button>

@@ -1,7 +1,25 @@
 @import "tailwindcss";
 
+@theme {
+  --color-mero-teal: #238b96;
+  --color-mero-darkTeal: #1c6f78;
+  --color-mero-orange: #eda34c;
+  --color-mero-darkOrange: #d68e36;
+  --animate-ticker: ticker 40s linear infinite;
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(100vw);
+    }
+
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+}
+
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 antialiased selection:bg-blue-500/30;
+    @apply bg-gray-50 text-slate-800 antialiased selection:bg-mero-teal/30;
   }
 }

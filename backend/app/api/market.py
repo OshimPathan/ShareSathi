@@ -9,6 +9,10 @@ router = APIRouter()
 async def read_summary() -> Dict[str, Any]:
     return await MarketService.get_summary()
 
+@router.get("/companies")
+async def read_companies() -> Dict[str, Any]:
+    return await MarketService.get_companies()
+
 @router.get("/live")
 async def read_live_market() -> Dict[str, Any]:
     return await MarketService.get_live()

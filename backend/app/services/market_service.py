@@ -2,12 +2,16 @@ from typing import Dict, Any, Optional
 from app.services.nepse_service import NepseService
 
 class MarketService:
-    @staticmethod
-    async def get_summary() -> Dict[str, Any]:
+    @classmethod
+    async def get_summary(cls) -> Dict[str, Any]:
         return await NepseService.get_market_summary()
 
-    @staticmethod
-    async def get_live() -> Dict[str, Any]:
+    @classmethod
+    async def get_companies(cls) -> Dict[str, Any]:
+        return await NepseService.get_company_list()
+
+    @classmethod
+    async def get_live(cls) -> Dict[str, Any]:
         return await NepseService.get_live_market()
 
     @staticmethod

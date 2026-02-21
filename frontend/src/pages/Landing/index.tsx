@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Activity, BarChart3, LineChart, Shield, ChevronRight, TrendingUp, TrendingDown, Newspaper } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
+import { useNavigate, Link } from 'react-router-dom';
+import { TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../services/api';
-
+import { SearchableDropdown } from '../../components/ui/SearchableDropdown';
+import { Footer } from '../../components/layout/Footer';
+import Ticker from '../../components/domain/Ticker';
 export const Landing = () => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [marketData, setMarketData] = useState<any>(null);
     const [news, setNews] = useState<any[]>([]);
 
@@ -28,223 +28,280 @@ export const Landing = () => {
         fetchPublicData();
     }, []);
 
-    const handleJoinWaitlist = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email) {
-            setWaitlistStatus('error');
-            return;
-        }
-        // Simulate API call to save email
-        setTimeout(() => {
-            setWaitlistStatus('success');
-            setEmail('');
-        }, 600);
-    };
-
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-blue-500/30 overflow-x-hidden">
-            {/* Dynamic Background */}
-            <div className="fixed inset-0 pointer-events-none z-0">
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/10 blur-[150px] rounded-full mix-blend-screen" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-500/10 blur-[150px] rounded-full mix-blend-screen" />
+        <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
+
+            {/* Top Orange Header Bar (Mero Lagani Style) */}
+            <div className="bg-mero-orange text-white text-xs py-2 px-4 lg:px-20 hidden md:flex justify-between items-center w-full">
+                <div>
+                    <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <a href="mailto:oshimpathan@gmail.com" className="flex items-center gap-1 hover:underline">✉ oshimpathan@gmail.com</a>
+                    <span className="flex items-center gap-1">📞 (+977) 9800000000</span>
+                    <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-[10px] tracking-wider transition-colors ml-2" onClick={() => alert("English Language Selected")}>ENGLISH</button>
+                    <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-[#238b96] hover:bg-[#1c6f78] text-white px-3 py-1 text-[10px] tracking-wider transition-colors">Create Free Account</button>
+                    <button className="bg-[#60bb46] hover:bg-[#4ea037] text-white px-3 py-1 flex items-center text-[10px] tracking-wider transition-colors" onClick={() => alert("Opening Help Center...")}>HELP ▾</button>
+                    <a href="/about" className="hover:underline cursor-pointer">About Us</a>
+                    <a href="/contact" className="hover:underline cursor-pointer">Contact Us</a>
+                </div>
             </div>
 
-            <div className="relative z-10">
-                <nav className="container mx-auto px-6 py-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-md rounded-b-2xl border-b border-slate-800">
-                    <div className="flex items-center space-x-2">
-                        <img src="/logo.png" alt="ShareSathi Logo" className="w-8 h-8 rounded bg-white p-0.5" />
-                        <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">ShareSathi</span>
-                    </div>
-                    <div>
-                        <Button variant="secondary" className="mr-4 border-slate-700 hover:bg-slate-800 text-slate-200" onClick={() => navigate('/login')}>Login</Button>
-                        <Button className="bg-blue-600 hover:bg-blue-500 text-white" onClick={() => navigate('/login')}>Open App</Button>
-                    </div>
-                </nav>
-
-                {/* Hero Section */}
-                <section className="container mx-auto px-6 py-20 lg:py-32 text-center">
-                    <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8">
-                        Master the NEPSE <br className="hidden lg:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">Without the Risk</span>
-                    </h1>
-                    <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-12">
-                        ShareSathi is an AI-powered stock analytics and paper trading simulation platform built specifically for the Nepal Stock Exchange.
-                    </p>
-
-                    <form onSubmit={handleJoinWaitlist} className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
-                        <input
-                            type="email"
-                            placeholder="Enter your email to join waitlist"
-                            className="flex-1 px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <Button type="submit" size="lg" className="bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/50 whitespace-nowrap">
-                            Join Waitlist <ChevronRight className="w-4 h-4 ml-2 inline" />
-                        </Button>
-                    </form>
-                    {waitlistStatus === 'success' && <p className="text-emerald-400 mt-4 text-sm font-medium animate-pulse">🎉 You're on the list! We'll notify you soon.</p>}
-                    {waitlistStatus === 'error' && <p className="text-rose-400 mt-4 text-sm font-medium">Please enter a valid email address.</p>}
-                </section>
-
-                <section className="container mx-auto px-6 py-10">
-                    <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-
-                        {/* Live Market Overview Column (2/3 width) */}
-                        <div className="lg:col-span-2 space-y-6">
-                            <div className="flex items-center justify-between mb-2">
-                                <h2 className="text-2xl font-bold flex items-center gap-2">
-                                    <Activity className="w-5 h-5 text-blue-400" />
-                                    Live Market Overview
-                                </h2>
-                                <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded border border-emerald-500/20 flex items-center gap-1 animate-pulse">
-                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div> LIVE
-                                </span>
-                            </div>
-
-                            {!marketData ? (
-                                <div className="h-64 border border-slate-800 rounded-xl bg-slate-900/50 flex items-center justify-center text-slate-500 animate-pulse">
-                                    Loading market data...
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {/* NEPSE Index Highlight */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg">
-                                            <p className="text-sm text-slate-400 mb-1">NEPSE Index</p>
-                                            <p className="text-3xl font-bold font-mono text-emerald-400">{marketData.summary.nepseIndex.toFixed(2)}</p>
-                                            <p className="text-xs text-emerald-500 mt-1 flex items-center"><TrendingUp className="w-3 h-3 mr-1" /> Market Open</p>
-                                        </div>
-                                        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg">
-                                            <p className="text-sm text-slate-400 mb-1">Total Turnover</p>
-                                            <p className="text-2xl font-bold font-mono text-white">Rs. {(marketData.summary.totalTurnover / 10000000).toFixed(2)} Cr</p>
-                                        </div>
-                                        <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl shadow-lg">
-                                            <p className="text-sm text-slate-400 mb-1">Total Volume</p>
-                                            <p className="text-2xl font-bold font-mono text-white">{marketData.summary.totalTradedShares.toLocaleString()}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Gainers and Losers */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {/* Gainers */}
-                                        <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                                            <h3 className="text-emerald-400 font-bold mb-4 flex items-center pb-2 border-b border-slate-800"><TrendingUp className="w-4 h-4 mr-2" /> Top Gainers</h3>
-                                            <div className="space-y-3">
-                                                {marketData.topGainers.slice(0, 4).map((stock: any) => (
-                                                    <div key={stock.symbol} className="flex justify-between items-center bg-slate-800/30 p-2 rounded">
-                                                        <span className="font-bold">{stock.symbol}</span>
-                                                        <div className="text-right">
-                                                            <div className="font-mono text-sm">{stock.ltp.toFixed(2)}</div>
-                                                            <div className="text-emerald-500 font-mono text-xs">+{stock.percentageChange.toFixed(2)}%</div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Losers */}
-                                        <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl">
-                                            <h3 className="text-rose-400 font-bold mb-4 flex items-center pb-2 border-b border-slate-800"><TrendingDown className="w-4 h-4 mr-2" /> Top Losers</h3>
-                                            <div className="space-y-3">
-                                                {marketData.topLosers.slice(0, 4).map((stock: any) => (
-                                                    <div key={stock.symbol} className="flex justify-between items-center bg-slate-800/30 p-2 rounded">
-                                                        <span className="font-bold">{stock.symbol}</span>
-                                                        <div className="text-right">
-                                                            <div className="font-mono text-sm">{stock.ltp.toFixed(2)}</div>
-                                                            <div className="text-rose-500 font-mono text-xs">{stock.percentageChange.toFixed(2)}%</div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+            {/* Logo Area (White Background) */}
+            <div className="bg-white w-full py-4 px-4 lg:px-20 border-b border-slate-200">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <img src="/logo.png" alt="ShareSathi Logo" className="w-12 h-12 mr-3" />
+                        <div className="flex flex-col">
+                            <span className="text-3xl font-bold tracking-tight text-slate-800 uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>SHARE SATHI</span>
+                            <span className="text-xs text-slate-500 italic mt-[-2px]">For the Investor...</span>
                         </div>
-
-                        {/* Recent News Column (1/3 width) */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <h2 className="text-2xl font-bold flex items-center gap-2">
-                                    <Newspaper className="w-5 h-5 text-slate-300" />
-                                    Latest News
-                                </h2>
-                            </div>
-
-                            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden h-[450px] flex flex-col relative before:absolute before:inset-0 before:bg-gradient-to-b before:from-emerald-500/5 before:to-transparent before:pointer-events-none">
-                                <div className="p-4 border-b border-slate-800 bg-slate-950/50 backdrop-blur">
-                                    <p className="text-xs text-slate-400 font-medium">Headlines from NEPSE & Economy</p>
-                                </div>
-                                <div className="overflow-y-auto p-4 space-y-4 custom-scrollbar flex-1">
-                                    {news.length === 0 ? (
-                                        <div className="h-full flex items-center justify-center text-slate-500 animate-pulse text-sm">
-                                            Fetching headlines...
-                                        </div>
-                                    ) : (
-                                        news.map((item) => (
-                                            <a href={item.url} key={item.id} className="block group border-b border-slate-800/50 pb-4 last:border-0 last:pb-0">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm ${item.category === 'Corporate' ? 'bg-blue-500/20 text-blue-300' :
-                                                            item.category === 'IPO' ? 'bg-purple-500/20 text-purple-300' :
-                                                                item.category === 'Hydropower' ? 'bg-cyan-500/20 text-cyan-300' :
-                                                                    'bg-slate-700 text-slate-300'
-                                                        }`}>
-                                                        {item.category}
-                                                    </span>
-                                                    <span className="text-[10px] text-slate-500">{item.published_at}</span>
-                                                </div>
-                                                <h4 className="text-sm font-medium text-slate-200 group-hover:text-blue-400 transition-colors line-clamp-2 mt-2 leading-snug">
-                                                    {item.title}
-                                                </h4>
-                                                <p className="text-[10px] text-slate-500 mt-2 font-medium">{item.source}</p>
-                                            </a>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
-                </section>
-
-                {/* Features Section */}
-                <section className="container mx-auto px-6 py-24">
-                    <h2 className="text-3xl font-bold text-center mb-16">Platform Features</h2>
-                    <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                        {[
-                            {
-                                icon: <LineChart className="w-8 h-8 text-blue-400" />,
-                                title: 'Real-time Market Data',
-                                desc: 'Stay updated with live ticks, market depth, and NEPSE indices without manually refreshing.'
-                            },
-                            {
-                                icon: <BarChart3 className="w-8 h-8 text-emerald-400" />,
-                                title: 'Trading Simulator',
-                                desc: 'Test your strategies with Rs. 100,000 in virtual funds in a simulated live environment.'
-                            },
-                            {
-                                icon: <Shield className="w-8 h-8 text-purple-400" />,
-                                title: 'AI Forecast Modeling',
-                                desc: 'Machine learning predictions to assist your analysis and improve your win rate.'
-                            }
-                        ].map((feature, idx) => (
-                            <div key={idx} className="bg-slate-900/50 border border-slate-800 p-8 rounded-2xl hover:bg-slate-800/50 hover:border-slate-700 transition-colors">
-                                <div className="bg-slate-950 p-3 rounded-xl inline-block mb-6 border border-slate-800">
-                                    {feature.icon}
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-200 mb-3">{feature.title}</h3>
-                                <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
-                            </div>
-                        ))}
+                    {/* Mobile Only: Create Account Quick Link */}
+                    <div className="md:hidden flex">
+                        <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-mero-teal hover:bg-mero-darkTeal text-white px-3 py-2 text-xs font-bold rounded shadow-sm">
+                            Sign Up
+                        </button>
                     </div>
-                </section>
-
-                {/* Footer */}
-                <footer className="border-t border-slate-800 py-12 text-center text-slate-500">
-                    <p>© {new Date().getFullYear()} ShareSathi | NEPSE Analytics. All rights reserved.</p>
-                </footer>
+                </div>
             </div>
+
+            {/* Main Navigation (Teal Background) */}
+            <nav className="bg-mero-teal w-full text-white px-4 lg:px-20 flex flex-col md:flex-row justify-between items-center py-2 shadow-sm sticky top-0 z-50 gap-3 md:gap-0">
+                <div className="flex items-center gap-6 text-sm font-medium w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide shrink-0">
+                    <a href="#" className="hover:text-slate-200 transition-colors whitespace-nowrap">⌂</a>
+                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Market <span className="text-[10px] ml-1 opacity-70">▼</span></a>
+                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">News <span className="text-[10px] ml-1 opacity-70">▼</span></a>
+                    <a href="#" className="hover:text-slate-200 transition-colors whitespace-nowrap">Announcements</a>
+                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Reports <span className="text-[10px] ml-1 opacity-70">▼</span></a>
+                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Portfolio <span className="text-[10px] ml-1 opacity-70">▼</span></a>
+                    <a href="#" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">IPO <span className="text-[10px] ml-1 opacity-70">▼</span></a>
+                    <a href="#" className="hover:text-slate-200 transition-colors whitespace-nowrap">Services</a>
+                    <button onClick={() => navigate('/dashboard')} className="font-bold relative flex items-center whitespace-nowrap">
+                        Dashboard
+                        <span className="absolute -top-3 -right-6 bg-mero-orange text-white text-[10px] px-1 rounded shadow-sm">New</span>
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0">
+                    <div className="flex bg-white rounded overflow-hidden w-full md:w-64">
+                        <div className="flex-1 w-full text-black">
+                            <SearchableDropdown
+                                value=""
+                                onChange={(symbol) => {
+                                    if (symbol) window.location.href = `/trade?symbol=${symbol}`;
+                                }}
+                                placeholder="Search symbol..."
+                            />
+                        </div>
+                        <button className="bg-mero-orange text-white px-3 hover:bg-opacity-90 transition-colors border-l border-mero-orange/20 shrink-0">
+                            🔍
+                        </button>
+                    </div>
+
+                    {/* Desktop Login Button */}
+                    <button onClick={() => navigate('/login')} className="hidden md:flex items-center gap-1 font-medium hover:text-slate-200 transition-colors text-sm ml-2 whitespace-nowrap">
+                        👤 Log In
+                    </button>
+                </div>
+            </nav>
+
+            {/* Main Content Area Container */}
+            <Ticker />
+
+            <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
+
+                {/* Hero / Banner Area (Mero Lagani 3-Column Style) */}
+                <div className="grid lg:grid-cols-3 gap-6 mb-8">
+                    {/* Main Headline & Image (Col Span 2) */}
+                    <div className="lg:col-span-2 flex flex-col">
+                        <h1 className="text-2xl font-bold text-mero-teal leading-snug mb-3 hover:text-mero-darkTeal hover:underline cursor-pointer">
+                            {news.length > 0 ? news[0].title : "सुनको मूल्य उच्च रफ्तारमा बढ्ने क्रम रोकियो, यो साता तोलामा १,२०० रुपैयाँले बढेको सुन आगामी साता के होला?"}
+                        </h1>
+                        <div className="w-full bg-slate-900 aspect-video relative overflow-hidden group border border-slate-200 shadow-sm cursor-pointer">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=1200" alt="Gold Investment" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute bottom-4 left-4 z-20 text-white">
+                                <span className="text-xs bg-red-600 px-2 py-1 font-bold mb-2 inline-block">Market Analysis</span>
+                                <p className="text-sm font-medium opacity-90">{new Date().toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Side Ads / Promos (Col Span 1) */}
+                    <div className="space-y-4 flex flex-col">
+                        <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm h-[180px] flex items-center justify-center font-bold text-center group cursor-pointer overflow-hidden relative">
+                            <div className="absolute inset-0 bg-blue-900 text-white flex flex-col items-center justify-center p-4">
+                                <span className="text-xl mb-2">नेपाल इन्भेष्टमेण्ट बैंक</span>
+                                <span className="text-xs font-normal">सुरक्षित र भरपर्दो</span>
+                            </div>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm h-[180px] flex items-center justify-center font-bold text-center group cursor-pointer overflow-hidden relative">
+                            <div className="absolute inset-0 bg-pink-600 text-white flex flex-col items-center justify-center p-4">
+                                <span className="text-lg mb-2">नारी सुरक्षा जीवन बीमा योजना</span>
+                                <span className="bg-white text-pink-600 px-3 py-1 rounded-full text-xs">थप जानकारीको लागि</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {!marketData ? (
+                    <div className="h-64 border border-slate-200 rounded bg-white flex items-center justify-center text-slate-500 animate-pulse">
+                        Loading market data...
+                    </div>
+                ) : (
+                    <div className="space-y-8">
+                        {/* Mid Section: Mero Lagani Market Overview Chart */}
+                        <div className="bg-white border border-slate-200 border-t-4 border-t-mero-teal shadow-sm">
+                            <div className="bg-mero-teal text-white px-4 py-2 inline-block font-bold text-sm tracking-wide -mt-1 ml-4 rounded-b">
+                                Market Overview
+                            </div>
+                            <div className="p-6">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <h3 className="text-sm font-bold text-slate-700">Nepal Stock Exchange Limited · 1D</h3>
+                                    <span className="bg-slate-100 text-slate-800 font-mono font-bold px-2 py-1 text-sm border border-slate-200 rounded">
+                                        {marketData.summary.nepseIndex.toFixed(2)}
+                                    </span>
+                                    <span className={`font-bold font-mono text-sm ${marketData.summary?.percentageChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                        {marketData.summary?.percentageChange > 0 ? '+' : ''}{marketData.summary?.percentageChange?.toFixed(2) || '0.00'}%
+                                    </span>
+                                </div>
+                                <div className="h-72 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart
+                                            data={[
+                                                { time: '11:00', value: marketData.summary.nepseIndex - 20 },
+                                                { time: '12:00', value: marketData.summary.nepseIndex + 5 },
+                                                { time: '13:00', value: marketData.summary.nepseIndex - 15 },
+                                                { time: '14:00', value: marketData.summary.nepseIndex + 10 },
+                                                { time: '15:00', value: marketData.summary.nepseIndex }
+                                            ]}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                                            <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} orientation="right" dx={10} />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                                            />
+                                            <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#ffffff', strokeWidth: 2 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom Section: Mero Lagani Data Tables Grid */}
+                        <div className="grid lg:grid-cols-2 gap-x-8 gap-y-6">
+
+                            {/* Top Turnovers */}
+                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
+                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
+                                    <h3 className="font-bold text-sm tracking-wide">Top Turnovers</h3>
+                                    <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
+                                        As of {new Date().toISOString().slice(0, 10).replace(/-/g, '/')}
+                                    </span>
+                                </div>
+                                <div className="w-full">
+                                    <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
+                                        <div>Symbol</div>
+                                        <div className="text-right">Turnover</div>
+                                        <div className="text-right">LTP</div>
+                                    </div>
+                                    {marketData.topTurnovers?.slice(0, 5).map((stock: any, idx: number) => (
+                                        <div key={idx} className={`grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors`}>
+                                            <div className="font-bold text-blue-600 hover:underline cursor-pointer">{stock.symbol}</div>
+                                            <div className="text-right font-mono text-slate-800">{(stock.turnover / 100000).toLocaleString(undefined, { maximumFractionDigits: 2 })} Lakhs</div>
+                                            <div className="text-right font-mono font-medium text-slate-800">{stock.ltp?.toFixed(2) || '0.00'}</div>
+                                        </div>
+                                    ))}
+                                    <Link to="/market/turnovers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 hover:text-mero-darkTeal border-t border-slate-100 transition-colors uppercase tracking-wider">
+                                        View All Turnovers &rarr;
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* Top Gainers */}
+                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
+                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
+                                    <h3 className="font-bold text-sm tracking-wide">Top Gainers</h3>
+                                    <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
+                                        As of {new Date().toISOString().slice(0, 10).replace(/-/g, '/')}
+                                    </span>
+                                </div>
+                                <div className="w-full">
+                                    <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
+                                        <div>Symbol</div>
+                                        <div className="text-right">LTP</div>
+                                        <div className="text-right">% Change</div>
+                                    </div>
+                                    {marketData.topGainers?.slice(0, 5).map((stock: any, idx: number) => (
+                                        <div key={idx} className={`grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors`}>
+                                            <div className="font-bold text-blue-600 hover:underline cursor-pointer">{stock.symbol}</div>
+                                            <div className="text-right font-mono text-slate-800">{stock.ltp?.toFixed(2) || '0.00'}</div>
+                                            <div className="text-right font-mono font-bold text-emerald-600 flex items-center justify-end gap-1"><TrendingUp className="w-3 h-3" /> {stock.percentageChange?.toFixed(2) || '0.00'}%</div>
+                                        </div>
+                                    ))}
+                                    <Link to="/market/gainers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 hover:text-mero-darkTeal border-t border-slate-100 transition-colors uppercase tracking-wider">
+                                        View All Gainers &rarr;
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* Top Losers */}
+                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
+                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
+                                    <h3 className="font-bold text-sm tracking-wide">Top Losers</h3>
+                                    <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
+                                        As of {new Date().toISOString().slice(0, 10).replace(/-/g, '/')}
+                                    </span>
+                                </div>
+                                <div className="w-full">
+                                    <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
+                                        <div>Symbol</div>
+                                        <div className="text-right">LTP</div>
+                                        <div className="text-right">% Change</div>
+                                    </div>
+                                    {marketData.topLosers?.slice(0, 5).map((stock: any, idx: number) => (
+                                        <div key={idx} className={`grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors`}>
+                                            <div className="font-bold text-blue-600 hover:underline cursor-pointer">{stock.symbol}</div>
+                                            <div className="text-right font-mono text-slate-800">{stock.ltp?.toFixed(2) || '0.00'}</div>
+                                            <div className="text-right font-mono font-bold text-rose-600 flex items-center justify-end gap-1"><TrendingDown className="w-3 h-3" /> {stock.percentageChange?.toFixed(2) || '0.00'}%</div>
+                                        </div>
+                                    ))}
+                                    <Link to="/market/losers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 hover:text-mero-darkTeal border-t border-slate-100 transition-colors uppercase tracking-wider">
+                                        View All Losers &rarr;
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* Market Summary List */}
+                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
+                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
+                                    <h3 className="font-bold text-sm tracking-wide">Market Summary</h3>
+                                </div>
+                                <div className="w-full flex-col flex p-4 space-y-4">
+                                    <div className="bg-white border border-slate-200 p-4 rounded shadow-sm hover:shadow-md transition-shadow">
+                                        <p className="text-sm text-slate-500 mb-1 font-bold whitespace-nowrap">Total Turnover</p>
+                                        <p className="text-2xl font-bold font-mono text-slate-800">Rs. {(marketData.summary?.totalTurnover || 0).toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-white border border-slate-200 p-4 rounded shadow-sm hover:shadow-md transition-shadow">
+                                        <p className="text-sm text-slate-500 mb-1 font-bold whitespace-nowrap">Total Volume</p>
+                                        <p className="text-2xl font-bold font-mono text-slate-800">{marketData.summary?.totalVolume?.toLocaleString() || '0'}</p>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                                        <span className="text-sm font-medium text-slate-600">Market Status</span>
+                                        <span className={`font-bold text-xs px-2 py-1 rounded ${marketData.marketStatus === 'OPEN' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>{marketData.marketStatus}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+            </div>
+
+            <Footer />
         </div>
     );
 };

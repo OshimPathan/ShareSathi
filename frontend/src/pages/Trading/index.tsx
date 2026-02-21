@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Ca
 import { Button } from "../../components/ui/Button";
 import api from "../../services/api";
 import { TradingChart } from "../../components/charts/TradingChart";
+import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
 
 export const Trading = () => {
     const [balance, setBalance] = useState<number>(0);
@@ -251,13 +252,10 @@ export const Trading = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-sm text-slate-400 font-medium block mb-2">Symbol</label>
-                                        <input
-                                            type="text"
-                                            required
+                                        <SearchableDropdown
                                             value={symbol}
-                                            onChange={(e) => setSymbol(e.target.value)}
-                                            placeholder="e.g. NABIL"
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-md p-3 text-sm text-white focus:ring-2 focus:ring-blue-500 outline-none uppercase"
+                                            onChange={(val) => setSymbol(val)}
+                                            placeholder="Search Company..."
                                         />
                                     </div>
                                     <div>

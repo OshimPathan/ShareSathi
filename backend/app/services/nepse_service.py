@@ -140,113 +140,132 @@ class NepseService:
         return None
 
     @classmethod
-    async def get_historical_data(cls, symbol: str) -> Optional[Dict[str, Any]]:
-        seed_value = int(hashlib.sha256(symbol.encode('utf-8')).hexdigest(), 16) % 10**8
-        random.seed(seed_value)
-        
-        history = []
-        base_price = random.uniform(200, 1500)
-        from datetime import datetime, timedelta
-        start_date = datetime.now() - timedelta(days=130)  # to get ~90 trading days
-        days_added = 0
-        current_date = start_date
-        
-        while days_added < 90:
-            if current_date.weekday() <= 4:  # Mon-Fri
-                open_price = base_price + random.uniform(-5, 5)
-                close_price = open_price + random.uniform(-15, 15)
-                high_price = max(open_price, close_price) + random.uniform(0, 10)
-                low_price = min(open_price, close_price) - random.uniform(0, 10)
-                
-                if low_price < 10: 
-                    low_price = 10
-                    open_price = low_price + random.uniform(0, 5)
-                    close_price = low_price + random.uniform(0, 5)
-                    high_price = max(open_price, close_price) + random.uniform(0, 5)
+    async def get_company_list(cls) -> Dict[str, Any]:
+        n = cls.get_nepse()
+        try:
+            companies = await n.getCompanyList()
+            formatted = [{"symbol": c.get("symbol"), "name": c.get("securityName"), "sector": c.get("sectorName")} for c in companies if c.get("symbol")]
+            return {"companies": formatted}
+        except Exception as e:
+            logger.error(f"Failed to fetch companies: {e}")
+            return {"companies": []}
 
-                history.append({
-                    "time": current_date.strftime("%Y-%m-%d"),
-                    "open": round(open_price, 2),
-                    "high": round(high_price, 2),
-                    "low": round(low_price, 2),
-                    "close": round(close_price, 2),
-                    "volume": random.randint(5000, 50000)
-                })
-                base_price = close_price
-                days_added += 1
-            current_date += timedelta(days=1)
+    @classmethod
+    async def get_historical_data(cls, symbol: str) -> Optional[Dict[str, Any]]:
+        n = cls.get_nepse()
+        try:
+            history_data = await n.getCompanyPriceVolumeHistory(symbol.upper())
+            formatted_history = []
             
-        random.seed()
-        return {"history": history}
+            history_data = sorted(history_data, key=lambda x: x.get('businessDate', ''))
+            
+            for item in history_data:
+                formatted_history.append({
+                    "time": item.get('businessDate'),
+                    "open": float(item.get('openPrice', 0)) if item.get('openPrice') is not None else float(item.get('closePrice', 0)),
+                    "high": float(item.get('highPrice', 0)),
+                    "low": float(item.get('lowPrice', 0)),
+                    "close": float(item.get('closePrice', 0)),
+                    "volume": int(item.get('totalTradedQuantity', 0))
+                })
+            return {"history": formatted_history}
+        except Exception as e:
+            logger.error(f"Failed to fetch historical data for {symbol}: {e}")
+            return {"history": []}
 
     @classmethod
     async def get_fundamentals(cls, symbol: str) -> Dict[str, Any]:
-        """Fetch sector from Nepse, mock financial data since API doesn't provide it directly."""
+        """Fetch real company details from API and mock what's missing (like eps, pe, div yield)"""
         n = cls.get_nepse()
-        companies = await n.getCompanyList()
-        company = next((c for c in companies if c.get("symbol") == symbol.upper()), None)
-        sector = company.get("sectorName", "Others") if company else "Others"
+        try:
+            details_response = await n.getCompanyDetails(symbol.upper())
+            security_trade = details_response.get('securityDailyTradeDto', {})
+            security = details_response.get('security', {})
+            
+            companies = await n.getCompanyList()
+            company = next((c for c in companies if c.get("symbol") == symbol.upper()), None)
+            sector = company.get("sectorName", "Others") if company else "Others"
+            
+            paid_up_capital = float(company.get("activeStatus", 1) * 1000000000) if company else 1000000000 
+            fifty_two_week_high = float(security_trade.get('fiftyTwoWeekHigh', 0))
+            fifty_two_week_low = float(security_trade.get('fiftyTwoWeekLow', 0))
+            
+            seed_value = int(hashlib.sha256(symbol.encode('utf-8')).hexdigest(), 16) % 10**8
+            random.seed(seed_value)
 
-        seed_value = int(hashlib.sha256(symbol.encode('utf-8')).hexdigest(), 16) % 10**8
-        random.seed(seed_value)
-
-        eps = random.uniform(-10, 50)
-        pe = random.uniform(5, 50) if eps > 0 else 0
-        book_value = random.uniform(50, 400)
-        paid_up_capital = random.uniform(500000000, 20000000000)
-        dividend_yield = random.uniform(0, 15)
-        
-        data = {
-            "symbol": symbol.upper(),
-            "sector": sector,
-            "eps": round(eps, 2),
-            "peRatio": round(pe, 2),
-            "bookValue": round(book_value, 2),
-            "paidUpCapital": round(paid_up_capital, 2),
-            "dividendYield": round(dividend_yield, 2),
-            "pbvRatio": round(random.uniform(0.5, 5), 2),
-            "52WeekHigh": round(random.uniform(100, 2000), 2),
-            "52WeekLow": round(random.uniform(50, 1000), 2),
-            "marketCap": round(paid_up_capital * random.uniform(1, 5), 2)
-        }
-        random.seed() 
-        return data
+            eps = random.uniform(-10, 50)
+            pe = random.uniform(5, 50) if eps > 0 else 0
+            book_value = random.uniform(50, 400)
+            dividend_yield = random.uniform(0, 15)
+            
+            data = {
+                "symbol": symbol.upper(),
+                "sector": sector,
+                "eps": round(eps, 2),
+                "peRatio": round(pe, 2),
+                "bookValue": round(book_value, 2),
+                "paidUpCapital": round(paid_up_capital, 2),
+                "dividendYield": round(dividend_yield, 2),
+                "pbvRatio": round(random.uniform(0.5, 5), 2),
+                "52WeekHigh": round(fifty_two_week_high, 2),
+                "52WeekLow": round(fifty_two_week_low, 2),
+                "marketCap": round(paid_up_capital * random.uniform(1, 5), 2)
+            }
+            random.seed() 
+            return data
+        except Exception as e:
+            logger.error(f"Failed to fetch fundamentals for {symbol}: {e}")
+            return {
+                "symbol": symbol.upper(), "sector": "Unknown", "eps": 0, "peRatio": 0, "bookValue": 0,
+                "paidUpCapital": 0, "dividendYield": 0, "pbvRatio": 0, "52WeekHigh": 0, "52WeekLow": 0, "marketCap": 0
+            }
 
     @staticmethod
     async def get_ai_forecast(symbol: str) -> Dict[str, Any]:
-        date_str = datetime.now().strftime("%Y-%Y-%d")
-        seed_value = int(hashlib.sha256((symbol + date_str).encode('utf-8')).hexdigest(), 16) % 10**8
-        random.seed(seed_value)
-
-        signals = ["STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"]
-        signal = random.choices(signals, weights=[15, 30, 30, 15, 10])[0]
-        confidence = random.randint(60, 95)
-        current_price = random.uniform(200, 1500)
-        
-        if "BUY" in signal:
-            target_price = current_price * random.uniform(1.05, 1.25)
-            stop_loss = current_price * random.uniform(0.85, 0.95)
-            reasoning = f"{symbol} shows strong bullish momentum. Technical indicators (MACD and RSI) align with positive volume inflows. The recent breakout above the 50-day moving average suggests further upside potential."
-        elif "SELL" in signal:
-            target_price = current_price * random.uniform(0.75, 0.90)
-            stop_loss = current_price * random.uniform(1.05, 1.15)
-            reasoning = f"{symbol} faces significant resistance at current levels. Bearish divergence is visible on the RSI, predicting a short-term pullback. Support levels might be tested in the coming sessions."
-        else:
-            target_price = current_price * random.uniform(0.95, 1.05)
-            stop_loss = current_price * random.uniform(0.90, 0.95)
-            reasoning = f"{symbol} is currently consolidating in a tight range. Technicals remain neutral, and volatility is contracting. Wait for a decisive breakout above resistance or breakdown below support before taking a position."
-
-        data = {
-            "symbol": symbol.upper(),
-            "signal": signal,
-            "confidence": confidence,
-            "targetPrice": round(target_price, 2),
-            "stopLoss": round(stop_loss, 2),
-            "reasoning": reasoning,
-            "timestamp": datetime.now().isoformat()
-        }
-        random.seed()
-        return data
+        n = NepseService.get_nepse()
+        try:
+            live_market = await n.getLiveMarket()
+            stock_data = next((s for s in live_market if s.get("symbol") == symbol.upper()), None)
+            current_price = float(stock_data.get("lastTradedPrice", 0)) if stock_data else 500.0
+            
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            seed_value = int(hashlib.sha256((symbol + date_str).encode('utf-8')).hexdigest(), 16) % 10**8
+            random.seed(seed_value)
+    
+            signals = ["STRONG BUY", "BUY", "HOLD", "SELL", "STRONG SELL"]
+            signal = random.choices(signals, weights=[15, 30, 30, 15, 10])[0]
+            confidence = random.randint(60, 95)
+            
+            if "BUY" in signal:
+                target_price = current_price * random.uniform(1.05, 1.25)
+                stop_loss = current_price * random.uniform(0.85, 0.95)
+                reasoning = f"{symbol} shows strong bullish momentum. Technical indicators (MACD and RSI) align with positive volume inflows. The recent breakout above the 50-day moving average suggests further upside potential."
+            elif "SELL" in signal:
+                target_price = current_price * random.uniform(0.75, 0.90)
+                stop_loss = current_price * random.uniform(1.05, 1.15)
+                reasoning = f"{symbol} faces significant resistance at current levels. Bearish divergence is visible on the RSI, predicting a short-term pullback. Support levels might be tested in the coming sessions."
+            else:
+                target_price = current_price * random.uniform(0.95, 1.05)
+                stop_loss = current_price * random.uniform(0.90, 0.95)
+                reasoning = f"{symbol} is currently consolidating in a tight range. Technicals remain neutral, and volatility is contracting. Wait for a decisive breakout above resistance or breakdown below support before taking a position."
+    
+            data = {
+                "symbol": symbol.upper(),
+                "signal": signal,
+                "confidence": confidence,
+                "targetPrice": round(target_price, 2),
+                "stopLoss": round(stop_loss, 2),
+                "reasoning": reasoning,
+                "timestamp": datetime.now().isoformat()
+            }
+            random.seed()
+            return data
+        except Exception as e:
+            logger.error(f"Failed to generate AI forecast for {symbol}: {e}")
+            return {
+                "symbol": symbol.upper(), "signal": "HOLD", "confidence": 0, "targetPrice": 0, "stopLoss": 0,
+                "reasoning": "Error generating forecast.", "timestamp": datetime.now().isoformat()
+            }
 
     @classmethod
     async def get_market_depth(cls, symbol: str) -> Dict[str, Any]:
