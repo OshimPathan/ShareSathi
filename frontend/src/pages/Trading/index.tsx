@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
+import { Wallet, AlertTriangle, Zap, LineChart, Info, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { getWallet, executeTrade, getStockBySymbol, getStockHistory } from "../../services/db";
 import { TradingChart } from "../../components/charts/TradingChart";
 import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
@@ -16,7 +17,6 @@ export const Trading = () => {
     const [history, setHistory] = useState<HistoricalPrice[] | null>(null);
     const [stockInfo, setStockInfo] = useState<Stock | null>(null);
 
-    // Fetch Wallet Balance
     const fetchWallet = async () => {
         try {
             const wallet = await getWallet();
@@ -30,7 +30,6 @@ export const Trading = () => {
         fetchWallet();
     }, []);
 
-    // Fetch Market Data when symbol changes
     useEffect(() => {
         if (symbol.length >= 3) {
             const fetchData = async () => {
@@ -64,7 +63,7 @@ export const Trading = () => {
             const result = await executeTrade(symbol.toUpperCase(), quantity, action);
             if (result.success) {
                 setMessage({ text: result.message, type: "success" });
-                fetchWallet(); // Refresh balance
+                fetchWallet();
                 setSymbol("");
                 setQuantity(10);
             } else {
@@ -80,53 +79,69 @@ export const Trading = () => {
         }
     };
 
+    const estimatedCost = stockInfo ? stockInfo.ltp * quantity : 0;
+
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <header className="flex justify-between items-end">
+        <div className="space-y-6">
+            {/* Header */}
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 animate-slide-up">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Active Trading</h1>
-                    <p className="text-sm text-slate-500 mt-1">Execute paper trades against live NEPSE data</p>
+                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Trading</h1>
+                    <p className="text-sm text-slate-500 mt-0.5">Execute paper trades with live NEPSE prices</p>
                 </div>
-                <div className="text-right">
-                    <p className="text-sm text-slate-500">Buying Power</p>
-                    <p className="text-2xl font-mono text-emerald-400">Rs. {balance.toLocaleString()}</p>
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200/60">
+                    <Wallet className="w-4 h-4 text-emerald-600" />
+                    <div>
+                        <p className="text-[10px] text-emerald-600 font-medium leading-none">Buying Power</p>
+                        <p className="text-lg font-extrabold font-mono text-emerald-700">Rs. {balance.toLocaleString()}</p>
+                    </div>
                 </div>
             </header>
 
-            {/* Paper Trading Disclaimer */}
-            <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-                <span className="text-amber-600 text-lg mt-0.5">⚠️</span>
+            {/* Disclaimer */}
+            <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50/80 border border-amber-200/60 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                 <div>
-                    <p className="text-sm font-semibold text-amber-800">Paper Trading Only</p>
-                    <p className="text-xs text-amber-700 mt-0.5">Trades use virtual money with real NEPSE prices. No real securities are bought or sold. Brokerage fees mirror NEPSE rates for educational purposes.</p>
+                    <p className="text-xs font-semibold text-amber-800">Paper Trading Only</p>
+                    <p className="text-xs text-amber-700 mt-0.5">Virtual money with real NEPSE prices. Fees mirror actual NEPSE rates.</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
 
-                {/* Visualizations Column */}
+                {/* Left Column — Chart + Info */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Embedded Chart */}
-                    <Card className="overflow-hidden border-slate-300">
-                        <CardHeader className="bg-white border-b border-slate-300 pb-4">
+                    {/* Chart */}
+                    <Card className="overflow-hidden">
+                        <CardHeader className="border-b border-slate-100 pb-4">
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <CardTitle>Technical Chart</CardTitle>
-                                    <p className="text-sm text-slate-500 mt-1">{symbol ? `Live OHLC for ${symbol.toUpperCase()}` : "Enter a symbol to view chart"}</p>
+                                    <CardTitle className="text-slate-900">Technical Chart</CardTitle>
+                                    <p className="text-xs text-slate-500 mt-1">{symbol ? `OHLC · ${symbol.toUpperCase()}` : "Search a symbol to begin"}</p>
                                 </div>
+                                {stockInfo && (
+                                    <div className="text-right">
+                                        <div className="text-lg font-bold font-mono text-slate-900">Rs. {stockInfo.ltp.toLocaleString()}</div>
+                                        <div className={`text-xs font-bold font-mono flex items-center justify-end gap-0.5 ${stockInfo.percentage_change >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                            {stockInfo.percentage_change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                                            {stockInfo.point_change >= 0 ? '+' : ''}{stockInfo.point_change.toFixed(2)} ({stockInfo.percentage_change.toFixed(2)}%)
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent className="p-0 bg-slate-950">
                             <div className="h-[400px] w-full relative flex items-center justify-center">
                                 {!symbol || symbol.length < 3 ? (
-                                    <div className="text-slate-500 flex flex-col items-center">
-                                        <svg className="w-12 h-12 text-slate-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                                        </svg>
-                                        Waiting for Symbol Input...
+                                    <div className="text-slate-500 flex flex-col items-center gap-2">
+                                        <LineChart className="w-10 h-10 text-slate-700" />
+                                        <span className="text-sm">Enter a symbol to view chart</span>
                                     </div>
                                 ) : !history ? (
-                                    <div className="text-slate-500 animate-pulse text-sm">Loading Chart Data...</div>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="w-6 h-6 border-2 border-mero-teal/30 border-t-mero-teal rounded-full animate-spin" />
+                                        <span className="text-slate-500 text-sm">Loading chart...</span>
+                                    </div>
                                 ) : (
                                     <TradingChart data={history.map(h => ({ time: h.date, open: h.open, high: h.high, low: h.low, close: h.close }))} />
                                 )}
@@ -134,161 +149,147 @@ export const Trading = () => {
                         </CardContent>
                     </Card>
 
-                    {/* AI Forecast Panel – Coming Soon */}
-                    <Card className="border-indigo-500/30 overflow-hidden relative shadow-[0_0_15px_rgba(99,102,241,0.1)]">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="flex items-center gap-2 text-indigo-400">
-                                <svg className="w-5 h-5 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                                AI Market Forecast
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col items-center justify-center py-8 text-center">
-                                <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center mb-3">
-                                    <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
+                    {/* AI Forecast + Stock Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* AI Panel */}
+                        <Card className="border-indigo-200/50 overflow-hidden relative">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+                            <CardHeader className="pb-2">
+                                <CardTitle className="flex items-center gap-2 text-sm text-indigo-600">
+                                    <Zap className="w-4 h-4" />
+                                    AI Market Forecast
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-col items-center py-6 text-center">
+                                    <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-3">
+                                        <Zap className="w-6 h-6 text-indigo-400" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-indigo-600">Coming Soon</p>
+                                    <p className="text-xs text-slate-500 mt-1 max-w-[200px]">AI-powered buy/sell signals with confidence scores.</p>
                                 </div>
-                                <p className="text-sm font-semibold text-indigo-400">Coming Soon</p>
-                                <p className="text-xs text-slate-500 mt-1 max-w-xs">AI-powered market forecasts with buy/sell signals and confidence scores are under development.</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    {/* Stock Info Panel */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Stock Information</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {!stockInfo ? (
-                                <div className="text-slate-500 text-sm text-center py-8">Select a stock to view details</div>
-                            ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Last Traded Price</p>
-                                        <p className="text-lg font-bold text-slate-900">Rs. {stockInfo.ltp.toLocaleString()}</p>
+                        {/* Stock Info */}
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm flex items-center gap-2 text-slate-900">
+                                    <Info className="w-4 h-4 text-slate-400" />
+                                    Stock Details
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {!stockInfo ? (
+                                    <div className="text-sm text-slate-400 text-center py-6">Select a stock</div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { label: 'Open', value: `Rs. ${stockInfo.open_price.toLocaleString()}` },
+                                            { label: 'High / Low', value: `${stockInfo.high.toLocaleString()} / ${stockInfo.low.toLocaleString()}` },
+                                            { label: 'Volume', value: stockInfo.volume.toLocaleString() },
+                                            { label: 'Turnover', value: `Rs. ${stockInfo.turnover.toLocaleString()}` },
+                                            { label: 'Prev Close', value: `Rs. ${stockInfo.previous_close.toLocaleString()}` },
+                                            { label: 'Sector', value: stockInfo.sector ?? '—' },
+                                        ].map((item, i) => (
+                                            <div key={i} className="bg-slate-50 rounded-lg p-2.5">
+                                                <p className="text-[10px] text-slate-500 font-medium">{item.label}</p>
+                                                <p className="text-sm font-bold text-slate-800 mt-0.5 truncate">{item.value}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Change</p>
-                                        <p className={`text-lg font-bold ${stockInfo.percentage_change >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                            {stockInfo.point_change >= 0 ? '+' : ''}{stockInfo.point_change.toFixed(2)} ({stockInfo.percentage_change.toFixed(2)}%)
-                                        </p>
-                                    </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Volume</p>
-                                        <p className="text-lg font-bold text-slate-900">{stockInfo.volume.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Turnover</p>
-                                        <p className="text-lg font-bold text-slate-900">Rs. {stockInfo.turnover.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Open</p>
-                                        <p className="text-sm font-bold text-slate-900 mt-1">Rs. {stockInfo.open_price.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">High / Low</p>
-                                        <p className="text-sm font-mono text-slate-900 mt-1">{stockInfo.high.toLocaleString()} / {stockInfo.low.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Previous Close</p>
-                                        <p className="text-sm font-bold text-slate-900 mt-1">Rs. {stockInfo.previous_close.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white border border-slate-300 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-500">Sector</p>
-                                        <p className="text-sm font-bold text-blue-600 mt-1">{stockInfo.sector ?? '—'}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
 
-                {/* Execution & Depth Column */}
+                {/* Right Column — Trade Ticket */}
                 <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Trade Ticket</CardTitle>
+                    <Card className="sticky top-20">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-slate-900">Trade Ticket</CardTitle>
                         </CardHeader>
                         <CardContent>
                             {message.text && (
-                                <div className={`mb-6 p-4 rounded-md text-sm font-medium ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
+                                <div className={`mb-4 p-3 rounded-lg text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
                                     {message.text}
                                 </div>
                             )}
 
-                            <form onSubmit={handleTrade} className="space-y-6">
-                                {/* Action Toggle */}
-                                <div className="flex rounded-md p-1 bg-slate-100 border border-slate-300">
+                            <form onSubmit={handleTrade} className="space-y-5">
+                                {/* BUY / SELL Toggle */}
+                                <div className="flex rounded-xl p-1 bg-slate-100 border border-slate-200/80">
                                     <button
                                         type="button"
                                         onClick={() => setAction("BUY")}
-                                        className={`flex-1 py-2 text-sm font-medium rounded transition-all ${action === 'BUY' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${action === 'BUY' ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-200' : 'text-slate-500 hover:text-slate-700'}`}
                                     >
                                         Buy
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setAction("SELL")}
-                                        className={`flex-1 py-2 text-sm font-medium rounded transition-all ${action === 'SELL' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-200 ${action === 'SELL' ? 'bg-rose-600 text-white shadow-sm shadow-rose-200' : 'text-slate-500 hover:text-slate-700'}`}
                                     >
                                         Sell
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="text-sm text-slate-500 font-medium block mb-2">Symbol</label>
+                                        <label className="text-xs text-slate-500 font-semibold block mb-1.5">Symbol</label>
                                         <SearchableDropdown
                                             value={symbol}
                                             onChange={(val) => setSymbol(val)}
-                                            placeholder="Search Company..."
+                                            placeholder="Search company..."
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-sm text-slate-500 font-medium block mb-2">Quantity</label>
+                                        <label className="text-xs text-slate-500 font-semibold block mb-1.5">Quantity</label>
                                         <input
                                             type="number"
                                             required
                                             min="1"
                                             value={quantity}
                                             onChange={(e) => setQuantity(Number(e.target.value))}
-                                            className="w-full bg-white border border-slate-300 rounded-md p-3 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full bg-white border border-slate-200 rounded-lg p-3 text-sm text-slate-900 focus:ring-2 focus:ring-mero-teal/20 focus:border-mero-teal outline-none transition-all"
                                         />
                                     </div>
                                 </div>
 
+                                {/* Order Summary */}
+                                {stockInfo && (
+                                    <div className="rounded-lg bg-slate-50 border border-slate-200/80 p-3 space-y-2">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-slate-500">Price</span>
+                                            <span className="font-mono font-semibold text-slate-700">Rs. {stockInfo.ltp.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-slate-500">Qty</span>
+                                            <span className="font-mono font-semibold text-slate-700">{quantity}</span>
+                                        </div>
+                                        <div className="border-t border-slate-200 pt-2 flex justify-between text-sm">
+                                            <span className="text-slate-600 font-medium">Est. Cost</span>
+                                            <span className="font-mono font-bold text-slate-900">Rs. {estimatedCost.toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <Button
-                                    className={`w-full py-4 text-base font-bold ${action === 'BUY' ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-rose-600 hover:bg-rose-500 text-white'}`}
+                                    className={`w-full py-4 text-sm font-bold rounded-xl transition-all duration-200 ${action === 'BUY' ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-200/50' : 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-200/50'}`}
                                     disabled={isLoading}
                                 >
-                                    {isLoading ? "Executing..." : `Confirm ${action} Order`}
+                                    {isLoading ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Executing...
+                                        </span>
+                                    ) : `Confirm ${action} Order`}
                                 </Button>
                             </form>
                         </CardContent>
                     </Card>
-
-                    {/* Market Depth – Coming Soon */}
-                    <div>
-                        <Card className="h-full">
-                            <CardHeader><CardTitle>Market Depth</CardTitle></CardHeader>
-                            <CardContent>
-                                <div className="flex flex-col items-center justify-center py-10 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                        <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm font-semibold text-slate-700">Coming Soon</p>
-                                    <p className="text-xs text-slate-500 mt-1 max-w-xs">Live Level 2 order book data with bid/ask depth will be available in a future update.</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
                 </div>
             </div>
         </div>

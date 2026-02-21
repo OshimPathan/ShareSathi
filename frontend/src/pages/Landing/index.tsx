@@ -1,13 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { TrendingUp, TrendingDown, ArrowRight, BarChart3, Shield, Zap, BookOpen, ChevronRight, Play, Users, Activity, Target } from 'lucide-react';
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { getMarketBundle, getNews } from '../../services/db';
 import { SearchableDropdown } from '../../components/ui/SearchableDropdown';
 import { Footer } from '../../components/layout/Footer';
-import PaperTradingBanner from '../../components/layout/PaperTradingBanner';
 import Ticker from '../../components/domain/Ticker';
 import type { Stock, MarketSummary, NewsItem } from '../../types';
+
+/* ─── Animated counter hook ─── */
+function useCountUp(end: number, duration = 2000, decimals = 0) {
+    const [count, setCount] = useState(0);
+    const ref = useRef<HTMLDivElement>(null);
+    const started = useRef(false);
+
+    useEffect(() => {
+        if (!ref.current || started.current) return;
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting && !started.current) {
+                started.current = true;
+                const start = performance.now();
+                const animate = (now: number) => {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    setCount(parseFloat((eased * end).toFixed(decimals)));
+                    if (progress < 1) requestAnimationFrame(animate);
+                };
+                requestAnimationFrame(animate);
+            }
+        }, { threshold: 0.3 });
+        observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, [end, duration, decimals]);
+
+    return { count, ref };
+}
 
 export const Landing = () => {
     const navigate = useNavigate();
@@ -16,6 +43,7 @@ export const Landing = () => {
     const [topLosers, setTopLosers] = useState<Stock[]>([]);
     const [topTurnovers, setTopTurnovers] = useState<Stock[]>([]);
     const [news, setNews] = useState<NewsItem[]>([]);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const fetchPublicData = async () => {
@@ -34,264 +62,475 @@ export const Landing = () => {
         fetchPublicData();
     }, []);
 
+    const nepseIndex = summary ? Number(summary.nepse_index) : 0;
+    const pctChange = summary ? Number(summary.percentage_change) : 0;
+    const isPositive = pctChange >= 0;
+
+    /* Animated stats */
+    const usersCount = useCountUp(2500, 2000, 0);
+    const tradesCount = useCountUp(50000, 2500, 0);
+    const stocksCount = useCountUp(250, 1500, 0);
+
+    const chartData = summary ? [
+        { time: '11:00', value: nepseIndex - 20 },
+        { time: '11:30', value: nepseIndex - 12 },
+        { time: '12:00', value: nepseIndex + 5 },
+        { time: '12:30', value: nepseIndex - 5 },
+        { time: '13:00', value: nepseIndex - 15 },
+        { time: '13:30', value: nepseIndex + 2 },
+        { time: '14:00', value: nepseIndex + 10 },
+        { time: '14:30', value: nepseIndex + 3 },
+        { time: '15:00', value: nepseIndex }
+    ] : [];
+
     return (
-        <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
-            <PaperTradingBanner />
+        <div className="min-h-screen bg-white text-slate-800 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
 
-            {/* Top Orange Header Bar */}
-            <div className="bg-mero-orange text-white text-xs py-2 px-4 lg:px-20 hidden md:flex justify-between items-center w-full">
-                <div>
-                    <span>{new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <a href="mailto:oshimpathan@gmail.com" className="flex items-center gap-1 hover:underline">✉ oshimpathan@gmail.com</a>
-                    <span className="flex items-center gap-1">📞 (+977) 9800000000</span>
-                    <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-[10px] tracking-wider transition-colors ml-2">ENGLISH</button>
-                    <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-[#238b96] hover:bg-[#1c6f78] text-white px-3 py-1 text-[10px] tracking-wider transition-colors">Create Free Account</button>
-                    <button className="bg-[#60bb46] hover:bg-[#4ea037] text-white px-3 py-1 flex items-center text-[10px] tracking-wider transition-colors">HELP ▾</button>
-                    <Link to="/about" className="hover:underline cursor-pointer">About Us</Link>
-                    <Link to="/contact" className="hover:underline cursor-pointer">Contact Us</Link>
-                </div>
-            </div>
+            {/* ═══ NAVBAR ═══ */}
+            <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-slate-200/50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        {/* Logo */}
+                        <Link to="/" className="flex items-center gap-3 group">
+                            <img src="/logo.png" alt="ShareSathi" className="w-9 h-9 group-hover:scale-110 transition-transform duration-300" />
+                            <span className="text-xl font-bold tracking-tight text-slate-900">Share<span className="text-mero-teal">Sathi</span></span>
+                        </Link>
 
-            {/* Logo Area */}
-            <div className="bg-white w-full py-4 px-4 lg:px-20 border-b border-slate-200">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <img src="/logo.png" alt="ShareSathi Logo" className="w-12 h-12 mr-3" />
-                        <div className="flex flex-col">
-                            <span className="text-3xl font-bold tracking-tight text-slate-800 uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>SHARE SATHI</span>
-                            <span className="text-xs text-slate-500 italic mt-[-2px]">For the Investor...</span>
+                        {/* Desktop Nav */}
+                        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+                            <Link to="/market" className="hover:text-mero-teal transition-colors">Market</Link>
+                            <Link to="/news" className="hover:text-mero-teal transition-colors">News</Link>
+                            <Link to="/ipo" className="hover:text-mero-teal transition-colors">IPO</Link>
+                            <Link to="/pricing" className="hover:text-mero-teal transition-colors">Pricing</Link>
+                            <Link to="/about" className="hover:text-mero-teal transition-colors">About</Link>
                         </div>
-                    </div>
-                    <div className="md:hidden flex">
-                        <button onClick={() => navigate('/login', { state: { register: true } })} className="bg-mero-teal hover:bg-mero-darkTeal text-white px-3 py-2 text-xs font-bold rounded shadow-sm">
-                            Sign Up
+
+                        {/* CTA */}
+                        <div className="hidden md:flex items-center gap-3">
+                            <div className="w-48 text-black">
+                                <SearchableDropdown
+                                    value=""
+                                    onChange={(symbol) => { if (symbol) navigate(`/stock/${symbol}`); }}
+                                    placeholder="Search stocks..."
+                                />
+                            </div>
+                            <button onClick={() => navigate('/login')} className="text-sm font-medium text-slate-600 hover:text-mero-teal transition-colors px-3 py-2">
+                                Sign In
+                            </button>
+                            <button
+                                onClick={() => navigate('/login', { state: { register: true } })}
+                                className="bg-mero-teal hover:bg-mero-darkTeal text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-mero-teal/25 active:scale-95"
+                            >
+                                Get Started Free
+                            </button>
+                        </div>
+
+                        {/* Mobile menu button */}
+                        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div className="w-5 h-5 flex flex-col justify-center gap-1">
+                                <span className={`block h-0.5 w-full bg-slate-600 transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
+                                <span className={`block h-0.5 w-full bg-slate-600 transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`} />
+                                <span className={`block h-0.5 w-full bg-slate-600 transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
+                            </div>
                         </button>
                     </div>
-                </div>
-            </div>
 
-            {/* Main Navigation */}
-            <nav className="bg-mero-teal w-full text-white px-4 lg:px-20 flex flex-col md:flex-row justify-between items-center py-2 shadow-sm sticky top-0 z-50 gap-3 md:gap-0">
-                <div className="flex items-center gap-6 text-sm font-medium w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide shrink-0">
-                    <Link to="/" className="hover:text-slate-200 transition-colors whitespace-nowrap">⌂</Link>
-                    <Link to="/market" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Market</Link>
-                    <Link to="/news" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">News</Link>
-                    <Link to="/announcements" className="hover:text-slate-200 transition-colors whitespace-nowrap">Announcements</Link>
-                    <Link to="/reports" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Reports</Link>
-                    <Link to="/portfolio-info" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">Portfolio</Link>
-                    <Link to="/ipo" className="hover:text-slate-200 transition-colors flex items-center whitespace-nowrap">IPO</Link>
-                    <Link to="/services" className="hover:text-slate-200 transition-colors whitespace-nowrap">Services</Link>
-                    <button onClick={() => navigate('/dashboard')} className="font-bold relative flex items-center whitespace-nowrap">
-                        Dashboard
-                        <span className="absolute -top-3 -right-6 bg-mero-orange text-white text-[10px] px-1 rounded shadow-sm">New</span>
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end mt-2 md:mt-0">
-                    <div className="flex bg-white rounded overflow-hidden w-full md:w-64">
-                        <div className="flex-1 w-full text-black">
-                            <SearchableDropdown
-                                value=""
-                                onChange={(symbol) => {
-                                    if (symbol) navigate(`/stock/${symbol}`);
-                                }}
-                                placeholder="Search symbol..."
-                            />
+                    {/* Mobile Menu */}
+                    {mobileMenuOpen && (
+                        <div className="md:hidden py-4 border-t border-slate-200/50 animate-slide-down">
+                            <div className="flex flex-col gap-2">
+                                {[{ to: '/market', label: 'Market' }, { to: '/news', label: 'News' }, { to: '/ipo', label: 'IPO' }, { to: '/pricing', label: 'Pricing' }].map(item => (
+                                    <Link key={item.to} to={item.to} className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-mero-teal hover:bg-slate-50 rounded-lg transition-colors">{item.label}</Link>
+                                ))}
+                                <div className="flex gap-2 mt-2 px-3">
+                                    <button onClick={() => navigate('/login')} className="flex-1 text-sm font-medium text-slate-600 border border-slate-200 py-2.5 rounded-full hover:bg-slate-50">Sign In</button>
+                                    <button onClick={() => navigate('/login', { state: { register: true } })} className="flex-1 bg-mero-teal text-white text-sm font-semibold py-2.5 rounded-full">Get Started</button>
+                                </div>
+                            </div>
                         </div>
-                        <button className="bg-mero-orange text-white px-3 hover:bg-opacity-90 transition-colors border-l border-mero-orange/20 shrink-0">
-                            🔍
-                        </button>
-                    </div>
-                    <button onClick={() => navigate('/login')} className="hidden md:flex items-center gap-1 font-medium hover:text-slate-200 transition-colors text-sm ml-2 whitespace-nowrap">
-                        👤 Log In
-                    </button>
+                    )}
                 </div>
             </nav>
 
-            <Ticker />
+            {/* ═══ HERO SECTION ═══ */}
+            <section className="relative pt-24 pb-16 lg:pt-32 lg:pb-24 overflow-hidden">
+                {/* Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-teal-50/30" />
+                <div className="absolute top-20 right-0 w-[600px] h-[600px] bg-mero-teal/5 rounded-full blur-[128px] pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-mero-orange/5 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
+                {/* Grid pattern */}
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #238b96 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
-                {/* Hero / Banner Area */}
-                <div className="grid lg:grid-cols-3 gap-6 mb-8">
-                    <div className="lg:col-span-2 flex flex-col">
-                        <h1 className="text-2xl font-bold text-mero-teal leading-snug mb-3 hover:text-mero-darkTeal hover:underline cursor-pointer">
-                            {news.length > 0 ? news[0].title : "Welcome to ShareSathi — Your Smart NEPSE Companion"}
-                        </h1>
-                        <div className="w-full bg-slate-900 aspect-video relative overflow-hidden group border border-slate-200 shadow-sm cursor-pointer">
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
-                            <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=1200" alt="Market" className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute bottom-4 left-4 z-20 text-white">
-                                <span className="text-xs bg-red-600 px-2 py-1 font-bold mb-2 inline-block">Market Analysis</span>
-                                <p className="text-sm font-medium opacity-90">{new Date().toLocaleDateString()}</p>
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+                        {/* Left - Copy */}
+                        <div className="max-w-xl">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-mero-teal/10 text-mero-teal text-sm font-medium rounded-full mb-6 animate-fade-in">
+                                <Activity className="w-4 h-4" />
+                                Live NEPSE Data · Paper Trading
+                            </div>
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.1] animate-slide-up">
+                                Master NEPSE
+                                <br />
+                                <span className="text-gradient">Risk-Free</span>
+                            </h1>
+                            <p className="mt-6 text-lg text-slate-600 leading-relaxed animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                                Practice trading on Nepal Stock Exchange with <strong>real market data</strong> and <strong>Rs. 10,00,000</strong> virtual money. Build confidence before investing real capital.
+                            </p>
+
+                            {/* CTA Buttons */}
+                            <div className="flex flex-wrap gap-4 mt-8 animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                                <button
+                                    onClick={() => navigate('/login', { state: { register: true } })}
+                                    className="group bg-mero-teal hover:bg-mero-darkTeal text-white font-semibold px-7 py-3.5 rounded-full transition-all duration-300 hover:shadow-xl hover:shadow-mero-teal/20 active:scale-95 flex items-center gap-2"
+                                >
+                                    Start Trading Free
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/market')}
+                                    className="group border-2 border-slate-200 hover:border-mero-teal/30 text-slate-700 font-semibold px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-mero-teal/5 flex items-center gap-2"
+                                >
+                                    <Play className="w-4 h-4" />
+                                    View Live Market
+                                </button>
+                            </div>
+
+                            {/* Trust badges */}
+                            <div className="mt-10 flex items-center gap-6 animate-fade-in delay-500" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                                <div className="flex -space-x-2">
+                                    {['bg-teal-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'].map((bg, i) => (
+                                        <div key={i} className={`w-8 h-8 rounded-full ${bg} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}>
+                                            {String.fromCharCode(65 + i)}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="text-sm text-slate-500">
+                                    <span className="font-semibold text-slate-700">2,500+</span> traders learning NEPSE
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="space-y-4 flex flex-col">
-                        <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm h-[180px] flex items-center justify-center font-bold text-center group cursor-pointer overflow-hidden relative">
-                            <div className="absolute inset-0 bg-blue-900 text-white flex flex-col items-center justify-center p-4">
-                                <span className="text-xl mb-2">नेपाल इन्भेष्टमेण्ट बैंक</span>
-                                <span className="text-xs font-normal">सुरक्षित र भरपर्दो</span>
-                            </div>
-                        </div>
-                        <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm h-[180px] flex items-center justify-center font-bold text-center group cursor-pointer overflow-hidden relative">
-                            <div className="absolute inset-0 bg-pink-600 text-white flex flex-col items-center justify-center p-4">
-                                <span className="text-lg mb-2">नारी सुरक्षा जीवन बीमा योजना</span>
-                                <span className="bg-white text-pink-600 px-3 py-1 rounded-full text-xs">थप जानकारीको लागि</span>
+
+                        {/* Right - Live Market Card */}
+                        <div className="animate-scale-in delay-300" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                            <div className="relative">
+                                {/* Glow effect */}
+                                <div className="absolute -inset-4 bg-gradient-to-r from-mero-teal/20 via-transparent to-mero-orange/20 rounded-3xl blur-2xl opacity-60 animate-pulse-soft" />
+
+                                <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+                                    {/* Card Header */}
+                                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-bold text-slate-900">NEPSE Index</h3>
+                                            <p className="text-xs text-slate-500">Nepal Stock Exchange · Live</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-bold font-mono text-slate-900">
+                                                {nepseIndex > 0 ? nepseIndex.toFixed(2) : '---'}
+                                            </div>
+                                            <div className={`text-sm font-mono font-semibold ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                {pctChange !== 0 && (isPositive ? '+' : '')}{pctChange.toFixed(2)}%
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Mini Chart */}
+                                    <div className="h-48 px-2">
+                                        {chartData.length > 0 ? (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                                                    <defs>
+                                                        <linearGradient id="heroGradient" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor={isPositive ? '#10b981' : '#f43f5e'} stopOpacity={0.2} />
+                                                            <stop offset="95%" stopColor={isPositive ? '#10b981' : '#f43f5e'} stopOpacity={0} />
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <XAxis dataKey="time" hide />
+                                                    <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
+                                                    <Tooltip contentStyle={{ backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: '12px', fontSize: '13px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
+                                                    <Area type="monotone" dataKey="value" stroke={isPositive ? '#10b981' : '#f43f5e'} strokeWidth={2.5} fill="url(#heroGradient)" dot={false} />
+                                                </AreaChart>
+                                            </ResponsiveContainer>
+                                        ) : (
+                                            <div className="h-full flex items-center justify-center">
+                                                <div className="w-8 h-8 border-2 border-mero-teal/30 border-t-mero-teal rounded-full animate-spin" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Quick Stats */}
+                                    <div className="px-6 py-4 border-t border-slate-100 grid grid-cols-3 gap-4">
+                                        <div>
+                                            <p className="text-xs text-slate-500">Turnover</p>
+                                            <p className="text-sm font-bold font-mono text-slate-800">
+                                                {summary ? `${(Number(summary.total_turnover) / 10000000).toFixed(1)}Cr` : '---'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Volume</p>
+                                            <p className="text-sm font-bold font-mono text-slate-800">
+                                                {summary ? Number(summary.total_traded_shares).toLocaleString() : '---'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Status</p>
+                                            <p className={`text-sm font-bold ${summary?.market_status === 'Open' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                                {summary?.market_status || '---'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                {!summary ? (
-                    <div className="h-64 border border-slate-200 rounded bg-white flex items-center justify-center text-slate-500 animate-pulse">
-                        Loading market data...
+            {/* ═══ TICKER ═══ */}
+            <Ticker />
+
+            {/* ═══ STATS BAR ═══ */}
+            <section className="py-12 bg-slate-50 border-y border-slate-200/50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                        {[
+                            { ref: usersCount.ref, value: usersCount.count.toLocaleString(), suffix: '+', label: 'Active Traders', icon: Users },
+                            { ref: tradesCount.ref, value: tradesCount.count.toLocaleString(), suffix: '+', label: 'Paper Trades', icon: BarChart3 },
+                            { ref: stocksCount.ref, value: stocksCount.count.toLocaleString(), suffix: '+', label: 'NEPSE Stocks', icon: Target },
+                            { ref: null, value: '₹10L', suffix: '', label: 'Virtual Capital', icon: Zap },
+                        ].map((stat, i) => (
+                            <div key={i} ref={stat.ref} className="text-center group">
+                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-mero-teal/10 text-mero-teal mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <stat.icon className="w-5 h-5" />
+                                </div>
+                                <div className="text-3xl font-extrabold text-slate-900 font-mono">
+                                    {stat.value}<span className="text-mero-teal">{stat.suffix}</span>
+                                </div>
+                                <div className="text-sm text-slate-500 mt-1">{stat.label}</div>
+                            </div>
+                        ))}
                     </div>
-                ) : (
-                    <div className="space-y-8">
-                        {/* NEPSE Chart */}
-                        <div className="bg-white border border-slate-200 border-t-4 border-t-mero-teal shadow-sm">
-                            <div className="bg-mero-teal text-white px-4 py-2 inline-block font-bold text-sm tracking-wide -mt-1 ml-4 rounded-b">
-                                Market Overview
-                            </div>
-                            <div className="p-6">
-                                <div className="flex items-center gap-4 mb-6">
-                                    <h3 className="text-sm font-bold text-slate-700">Nepal Stock Exchange Limited · 1D</h3>
-                                    <span className="bg-slate-100 text-slate-800 font-mono font-bold px-2 py-1 text-sm border border-slate-200 rounded">
-                                        {Number(summary.nepse_index).toFixed(2)}
-                                    </span>
-                                    <span className={`font-bold font-mono text-sm ${Number(summary.percentage_change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                        {Number(summary.percentage_change) > 0 ? '+' : ''}{Number(summary.percentage_change).toFixed(2)}%
-                                    </span>
-                                </div>
-                                <div className="h-72 w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart
-                                            data={[
-                                                { time: '11:00', value: Number(summary.nepse_index) - 20 },
-                                                { time: '12:00', value: Number(summary.nepse_index) + 5 },
-                                                { time: '13:00', value: Number(summary.nepse_index) - 15 },
-                                                { time: '14:00', value: Number(summary.nepse_index) + 10 },
-                                                { time: '15:00', value: Number(summary.nepse_index) }
-                                            ]}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                                            <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} orientation="right" dx={10} />
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                                itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
-                                            />
-                                            <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#ffffff', strokeWidth: 2 }} />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
+                </div>
+            </section>
+
+            {/* ═══ FEATURES ═══ */}
+            <section className="py-20 lg:py-28">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center max-w-2xl mx-auto mb-16">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-mero-teal/10 text-mero-teal text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
+                            Why ShareSathi
                         </div>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                            Everything you need to
+                            <br />
+                            <span className="text-gradient-teal">learn stock trading</span>
+                        </h2>
+                        <p className="mt-4 text-lg text-slate-500">
+                            No risk. Real data. Full experience.
+                        </p>
+                    </div>
 
-                        {/* Data Tables Grid */}
-                        <div className="grid lg:grid-cols-2 gap-x-8 gap-y-6">
-                            {/* Top Turnovers */}
-                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
-                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
-                                    <h3 className="font-bold text-sm tracking-wide">Top Turnovers</h3>
-                                    <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
-                                        As of {new Date().toISOString().slice(0, 10).replace(/-/g, '/')}
-                                    </span>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                            { icon: Activity, title: 'Live NEPSE Data', desc: 'Real-time prices, indices, and market depth straight from Nepal Stock Exchange.', color: 'bg-emerald-50 text-emerald-600' },
+                            { icon: BarChart3, title: 'Paper Trading', desc: 'Practice with Rs. 10,00,000 virtual money. Execute buy/sell orders at live prices.', color: 'bg-blue-50 text-blue-600' },
+                            { icon: Shield, title: 'Risk Free', desc: 'No real money, no risk. Make mistakes, learn from them, grow your skills.', color: 'bg-purple-50 text-purple-600' },
+                            { icon: Zap, title: 'Accurate Fees', desc: 'NEPSE brokerage tiers, SEBON fee, and DP charges calculated exactly.', color: 'bg-amber-50 text-amber-600' },
+                            { icon: BookOpen, title: 'Portfolio Tracker', desc: 'Monitor holdings, P&L, sector allocation with beautiful charts.', color: 'bg-rose-50 text-rose-600' },
+                            { icon: Target, title: 'Watchlist & Alerts', desc: 'Track your favorite stocks with target price and stop-loss alerts.', color: 'bg-teal-50 text-teal-600' },
+                        ].map((feature, i) => (
+                            <div
+                                key={i}
+                                className="group relative bg-white rounded-2xl border border-slate-200/80 p-6 hover-lift cursor-default"
+                            >
+                                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${feature.color} mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                                    <feature.icon className="w-5 h-5" />
                                 </div>
-                                <div className="w-full">
-                                    <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
-                                        <div>Symbol</div><div className="text-right">Turnover</div><div className="text-right">LTP</div>
-                                    </div>
-                                    {topTurnovers.slice(0, 5).map((stock, idx) => (
-                                        <div key={idx} className="grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                            <Link to={`/stock/${stock.symbol}`} className="font-bold text-blue-600 hover:underline">{stock.symbol}</Link>
-                                            <div className="text-right font-mono text-slate-800">{(Number(stock.turnover) / 100000).toFixed(2)} Lakhs</div>
-                                            <div className="text-right font-mono font-medium text-slate-800">{Number(stock.ltp).toFixed(2)}</div>
-                                        </div>
-                                    ))}
-                                    <Link to="/market/turnovers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 border-t border-slate-100 transition-colors uppercase tracking-wider">
-                                        View All Turnovers &rarr;
-                                    </Link>
-                                </div>
+                                <h3 className="text-lg font-bold text-slate-900 mb-2">{feature.title}</h3>
+                                <p className="text-sm text-slate-500 leading-relaxed">{feature.desc}</p>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
+            {/* ═══ LIVE MARKET DATA ═══ */}
+            <section className="py-20 bg-slate-900 text-white relative overflow-hidden">
+                {/* Background orbs */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-mero-teal/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 left-0 w-72 h-72 bg-mero-orange/10 rounded-full blur-[80px]" />
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12">
+                        <div>
+                            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Live Market Pulse</h2>
+                            <p className="mt-2 text-slate-400">Real-time data from Nepal Stock Exchange</p>
+                        </div>
+                        <Link to="/market" className="mt-4 md:mt-0 inline-flex items-center gap-1 text-mero-teal hover:text-mero-teal/80 font-medium text-sm transition-colors">
+                            View Full Market <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+
+                    {!summary ? (
+                        <div className="grid md:grid-cols-3 gap-6">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="bg-white/5 rounded-2xl border border-white/10 p-6 animate-pulse h-72" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid md:grid-cols-3 gap-6">
                             {/* Top Gainers */}
-                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
-                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
-                                    <h3 className="font-bold text-sm tracking-wide">Top Gainers</h3>
-                                    <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
-                                        As of {new Date().toISOString().slice(0, 10).replace(/-/g, '/')}
-                                    </span>
-                                </div>
-                                <div className="w-full">
-                                    <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
-                                        <div>Symbol</div><div className="text-right">LTP</div><div className="text-right">% Change</div>
+                            <div className="bg-white/5 rounded-2xl border border-white/10 p-6 hover:bg-white/[0.08] transition-colors duration-300">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                                        <TrendingUp className="w-4 h-4 text-emerald-400" />
                                     </div>
-                                    {topGainers.slice(0, 5).map((stock, idx) => (
-                                        <div key={idx} className="grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                            <Link to={`/stock/${stock.symbol}`} className="font-bold text-blue-600 hover:underline">{stock.symbol}</Link>
-                                            <div className="text-right font-mono text-slate-800">{Number(stock.ltp).toFixed(2)}</div>
-                                            <div className="text-right font-mono font-bold text-emerald-600 flex items-center justify-end gap-1"><TrendingUp className="w-3 h-3" /> {Number(stock.percentage_change).toFixed(2)}%</div>
-                                        </div>
-                                    ))}
-                                    <Link to="/market/gainers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 border-t border-slate-100 transition-colors uppercase tracking-wider">
-                                        View All Gainers &rarr;
-                                    </Link>
+                                    <h3 className="font-bold text-white">Top Gainers</h3>
                                 </div>
+                                <div className="space-y-3">
+                                    {topGainers.slice(0, 5).map((stock, idx) => (
+                                        <Link to={`/stock/${stock.symbol}`} key={idx} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-2 px-2 rounded-lg transition-colors">
+                                            <div>
+                                                <span className="font-semibold text-white text-sm">{stock.symbol}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="font-mono text-sm text-slate-300">{Number(stock.ltp).toFixed(2)}</div>
+                                                <div className="font-mono text-xs font-bold text-emerald-400">+{Number(stock.percentage_change).toFixed(2)}%</div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                                <Link to="/market/gainers" className="mt-4 inline-flex items-center gap-1 text-xs text-mero-teal hover:underline font-medium">
+                                    View all <ChevronRight className="w-3 h-3" />
+                                </Link>
                             </div>
 
                             {/* Top Losers */}
-                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
-                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
-                                    <h3 className="font-bold text-sm tracking-wide">Top Losers</h3>
-                                    <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-sm shadow-sm">
-                                        As of {new Date().toISOString().slice(0, 10).replace(/-/g, '/')}
-                                    </span>
-                                </div>
-                                <div className="w-full">
-                                    <div className="grid grid-cols-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 py-2 px-4 uppercase">
-                                        <div>Symbol</div><div className="text-right">LTP</div><div className="text-right">% Change</div>
+                            <div className="bg-white/5 rounded-2xl border border-white/10 p-6 hover:bg-white/[0.08] transition-colors duration-300">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <div className="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center">
+                                        <TrendingDown className="w-4 h-4 text-rose-400" />
                                     </div>
-                                    {topLosers.slice(0, 5).map((stock, idx) => (
-                                        <div key={idx} className="grid grid-cols-3 text-sm py-2 px-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                            <Link to={`/stock/${stock.symbol}`} className="font-bold text-blue-600 hover:underline">{stock.symbol}</Link>
-                                            <div className="text-right font-mono text-slate-800">{Number(stock.ltp).toFixed(2)}</div>
-                                            <div className="text-right font-mono font-bold text-rose-600 flex items-center justify-end gap-1"><TrendingDown className="w-3 h-3" /> {Number(stock.percentage_change).toFixed(2)}%</div>
-                                        </div>
-                                    ))}
-                                    <Link to="/market/losers" className="block w-full text-center py-2.5 text-xs font-bold text-mero-teal hover:bg-slate-50 border-t border-slate-100 transition-colors uppercase tracking-wider">
-                                        View All Losers &rarr;
-                                    </Link>
+                                    <h3 className="font-bold text-white">Top Losers</h3>
                                 </div>
+                                <div className="space-y-3">
+                                    {topLosers.slice(0, 5).map((stock, idx) => (
+                                        <Link to={`/stock/${stock.symbol}`} key={idx} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-2 px-2 rounded-lg transition-colors">
+                                            <div>
+                                                <span className="font-semibold text-white text-sm">{stock.symbol}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="font-mono text-sm text-slate-300">{Number(stock.ltp).toFixed(2)}</div>
+                                                <div className="font-mono text-xs font-bold text-rose-400">{Number(stock.percentage_change).toFixed(2)}%</div>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                                <Link to="/market/losers" className="mt-4 inline-flex items-center gap-1 text-xs text-mero-teal hover:underline font-medium">
+                                    View all <ChevronRight className="w-3 h-3" />
+                                </Link>
                             </div>
 
-                            {/* Market Summary */}
-                            <div className="bg-white border border-slate-200 shadow-sm rounded-sm overflow-hidden">
-                                <div className="bg-mero-teal text-white flex justify-between items-center px-4 py-2 border-b border-mero-darkTeal">
-                                    <h3 className="font-bold text-sm tracking-wide">Market Summary</h3>
+                            {/* Top Turnovers */}
+                            <div className="bg-white/5 rounded-2xl border border-white/10 p-6 hover:bg-white/[0.08] transition-colors duration-300">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                        <BarChart3 className="w-4 h-4 text-blue-400" />
+                                    </div>
+                                    <h3 className="font-bold text-white">Top Turnovers</h3>
                                 </div>
-                                <div className="w-full flex-col flex p-4 space-y-4">
-                                    <div className="bg-white border border-slate-200 p-4 rounded shadow-sm hover:shadow-md transition-shadow">
-                                        <p className="text-sm text-slate-500 mb-1 font-bold whitespace-nowrap">Total Turnover</p>
-                                        <p className="text-2xl font-bold font-mono text-slate-800">Rs. {Number(summary.total_turnover).toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white border border-slate-200 p-4 rounded shadow-sm hover:shadow-md transition-shadow">
-                                        <p className="text-sm text-slate-500 mb-1 font-bold whitespace-nowrap">Total Volume</p>
-                                        <p className="text-2xl font-bold font-mono text-slate-800">{Number(summary.total_traded_shares).toLocaleString()}</p>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                                        <span className="text-sm font-medium text-slate-600">Market Status</span>
-                                        <span className={`font-bold text-xs px-2 py-1 rounded ${summary.market_status === 'Open' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'}`}>{summary.market_status}</span>
-                                    </div>
+                                <div className="space-y-3">
+                                    {topTurnovers.slice(0, 5).map((stock, idx) => (
+                                        <Link to={`/stock/${stock.symbol}`} key={idx} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 hover:bg-white/5 -mx-2 px-2 rounded-lg transition-colors">
+                                            <div>
+                                                <span className="font-semibold text-white text-sm">{stock.symbol}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="font-mono text-sm text-slate-300">{Number(stock.ltp).toFixed(2)}</div>
+                                                <div className="font-mono text-xs text-blue-400">{(Number(stock.turnover) / 100000).toFixed(1)}L</div>
+                                            </div>
+                                        </Link>
+                                    ))}
                                 </div>
+                                <Link to="/market/turnovers" className="mt-4 inline-flex items-center gap-1 text-xs text-mero-teal hover:underline font-medium">
+                                    View all <ChevronRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* ═══ NEWS SECTION ═══ */}
+            {news.length > 0 && (
+                <section className="py-20">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-end justify-between mb-10">
+                            <div>
+                                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Latest Market News</h2>
+                                <p className="mt-1 text-slate-500">Stay informed with live-scraped financial news</p>
+                            </div>
+                            <Link to="/news" className="hidden md:inline-flex items-center gap-1 text-mero-teal hover:underline font-medium text-sm">
+                                All News <ChevronRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {news.slice(0, 3).map((item, i) => (
+                                <a key={i} href={item.url ?? '#'} target="_blank" rel="noopener noreferrer" className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover-lift">
+                                    <div className="h-40 bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center">
+                                        <BarChart3 className="w-12 h-12 text-slate-300 group-hover:text-mero-teal/50 transition-colors" />
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-xs font-semibold text-mero-teal bg-mero-teal/10 px-2 py-0.5 rounded-full">{item.category || 'Market'}</span>
+                                            <span className="text-xs text-slate-400">{item.source}</span>
+                                        </div>
+                                        <h3 className="font-bold text-slate-900 line-clamp-2 group-hover:text-mero-teal transition-colors leading-snug">{item.title}</h3>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* ═══ CTA SECTION ═══ */}
+            <section className="py-20">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="relative rounded-3xl overflow-hidden">
+                        {/* Background */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-mero-teal via-mero-darkTeal to-slate-900" />
+                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
+                        <div className="relative px-8 py-16 sm:px-16 text-center">
+                            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                                Ready to start your
+                                <br />
+                                trading journey?
+                            </h2>
+                            <p className="mt-4 text-lg text-white/70 max-w-lg mx-auto">
+                                Join thousands of Nepali traders practicing on ShareSathi. Free forever, no credit card required.
+                            </p>
+                            <div className="mt-8 flex flex-wrap justify-center gap-4">
+                                <button
+                                    onClick={() => navigate('/login', { state: { register: true } })}
+                                    className="group bg-white text-mero-darkTeal font-bold px-8 py-4 rounded-full hover:bg-slate-50 transition-all duration-300 hover:shadow-xl active:scale-95 flex items-center gap-2"
+                                >
+                                    Create Free Account
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                                <button
+                                    onClick={() => navigate('/market')}
+                                    className="border-2 border-white/30 text-white font-semibold px-8 py-4 rounded-full hover:bg-white/10 transition-all duration-300"
+                                >
+                                    Explore Market
+                                </button>
                             </div>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            </section>
 
             <Footer />
         </div>
