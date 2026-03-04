@@ -24,19 +24,24 @@ export const Dashboard = () => {
 
     useEffect(() => {
         const load = async () => {
-            const [bundle, stocks] = await Promise.all([
-                getMarketBundle(),
-                getAllStocks(),
-            ]);
-            if (bundle) {
-                setSummary(bundle.summary);
-                setTopGainers(bundle.topGainers);
-                setTopLosers(bundle.topLosers);
-                setTopTurnovers(bundle.topTurnovers);
-                setSubIndices(bundle.subIndices);
+            try {
+                const [bundle, stocks] = await Promise.all([
+                    getMarketBundle(),
+                    getAllStocks(),
+                ]);
+                if (bundle) {
+                    setSummary(bundle.summary);
+                    setTopGainers(bundle.topGainers);
+                    setTopLosers(bundle.topLosers);
+                    setTopTurnovers(bundle.topTurnovers);
+                    setSubIndices(bundle.subIndices);
+                }
+                setAllStocks(stocks);
+            } catch (err) {
+                console.error("Failed to load dashboard data:", err);
+            } finally {
+                setLoaded(true);
             }
-            setAllStocks(stocks);
-            setLoaded(true);
         };
         load();
     }, []);

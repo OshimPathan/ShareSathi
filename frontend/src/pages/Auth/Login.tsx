@@ -57,7 +57,12 @@ export const Login = ({ initialMode }: { initialMode?: 'login' | 'register' | 'f
                 }
             }
         } catch (err: unknown) {
-            const e = err as { message?: string };
+            const e = err as { message?: string; statusCode?: number };
+            // If email verification is required, redirect to verify page
+            if (e.statusCode === 403 && e.message?.toLowerCase().includes('verif')) {
+                navigate("/verify-email", { state: { email } });
+                return;
+            }
             setError(e.message || "Authentication failed. Please try again.");
         } finally {
             setIsLoading(false);
@@ -65,11 +70,14 @@ export const Login = ({ initialMode }: { initialMode?: 'login' | 'register' | 'f
     };
 
     const handleOAuth = async (provider: 'google' | 'github') => {
+        setError("");
+        setIsLoading(true);
         try {
             await loginWithOAuth(provider);
         } catch (err: unknown) {
             const e = err as { message?: string };
             setError(e.message || `Failed to sign in with ${provider}`);
+            setIsLoading(false);
         }
     };
 
