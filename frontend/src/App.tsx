@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { DashboardSkeleton } from './components/ui/Skeleton';
 import { DisclaimerBanner } from './components/ui/Disclaimer';
+import useAuthStore from './store/authStore';
 
 // Eager-load the landing page for fast first paint
 import Landing from './pages/Landing';
@@ -55,6 +56,16 @@ function PageLoader() {
 }
 
 function App() {
+  // Restore auth session on app startup (before any route renders)
+  const initialize = useAuthStore((s) => s.initialize);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize();
+    }
+  }, [initialize, isInitialized]);
+
   return (
     <BrowserRouter>
       <ErrorBoundary>

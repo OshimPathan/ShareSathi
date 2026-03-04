@@ -93,6 +93,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             },
             token: data.accessToken,
             isAuthenticated: true,
+            isInitialized: true,
         });
         // Initialize subscription tier after login
         useSubscriptionStore.getState().initialize();
@@ -128,6 +129,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                 },
                 token: data.accessToken,
                 isAuthenticated: true,
+                isInitialized: true,
             });
         }
         return { requireEmailVerification: false };
@@ -172,6 +174,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             },
             token: data.accessToken,
             isAuthenticated: true,
+            isInitialized: true,
         });
     },
 
