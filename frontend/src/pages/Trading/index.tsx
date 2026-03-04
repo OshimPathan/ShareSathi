@@ -6,6 +6,7 @@ import { getWallet, executeTrade, getStockBySymbol, getStockHistory } from "../.
 import { TradingChart } from "../../components/charts/TradingChart";
 import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
 import type { Stock, HistoricalPrice } from "../../types";
+import SEO from '../../components/ui/SEO';
 
 export const Trading = () => {
     const [balance, setBalance] = useState<number>(0);
@@ -83,6 +84,7 @@ export const Trading = () => {
 
     return (
         <div className="space-y-6">
+            <SEO title="Trading" description="Execute paper trades with live NEPSE prices. Buy and sell stocks risk-free with virtual money." canonical="/trade" />
             {/* Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 animate-slide-up">
                 <div>
@@ -99,7 +101,7 @@ export const Trading = () => {
             </header>
 
             {/* Disclaimer */}
-            <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50/80 border border-amber-200/60 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50/80 border border-amber-200/60 animate-slide-up animate-in delay-100">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                 <div>
                     <p className="text-xs font-semibold text-amber-800">Paper Trading Only</p>
@@ -107,7 +109,7 @@ export const Trading = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up animate-in delay-200">
 
                 {/* Left Column — Chart + Info */}
                 <div className="lg:col-span-2 space-y-6">

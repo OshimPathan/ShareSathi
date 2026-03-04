@@ -157,6 +157,13 @@
   .delay-600 { animation-delay: 600ms; }
   .delay-700 { animation-delay: 700ms; }
 
+  /* Animate-in: starts hidden, fills forwards to visible.
+     Uses animation-fill-mode: forwards so final keyframe state persists. */
+  .animate-in {
+    opacity: 0;
+    animation-fill-mode: forwards;
+  }
+
   /* Glow effects */
   .glow-teal {
     box-shadow: 0 0 20px rgba(35, 139, 150, 0.3), 0 0 60px rgba(35, 139, 150, 0.1);
@@ -180,5 +187,40 @@
   .hover-lift:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Safe-area bottom padding for iOS devices with home indicator */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ─── Accessibility: Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Ensure animated elements are visible immediately */
+  .animate-in {
+    opacity: 1 !important;
+    animation-fill-mode: none !important;
+  }
+
+  /* Disable ticker scroll */
+  .animate-ticker {
+    animation: none !important;
+  }
+
+  /* Disable hover lift transforms */
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }

@@ -6,6 +6,7 @@ import { getMarketBundle, getNews } from '../../services/db';
 import { SearchableDropdown } from '../../components/ui/SearchableDropdown';
 import { Footer } from '../../components/layout/Footer';
 import Ticker from '../../components/domain/Ticker';
+import SEO from '../../components/ui/SEO';
 import type { Stock, MarketSummary, NewsItem } from '../../types';
 
 /* ─── Animated counter hook ─── */
@@ -85,6 +86,7 @@ export const Landing = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans selection:bg-mero-teal/20 overflow-x-hidden">
+            <SEO title="Nepal's #1 Paper Trading & NEPSE Analytics" description="Practice stock trading risk-free with real NEPSE data. Paper trading, portfolio analytics, live market data, and AI insights for Nepalese investors." canonical="/" />
 
             {/* ═══ NAVBAR ═══ */}
             <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-slate-200/50 dark:border-slate-700/50">
@@ -175,12 +177,12 @@ export const Landing = () => {
                                 <br />
                                 <span className="text-gradient">Risk-Free</span>
                             </h1>
-                            <p className="mt-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                            <p className="mt-6 text-lg text-slate-600 dark:text-slate-400 leading-relaxed animate-slide-up animate-in delay-200">
                                 Practice trading on Nepal Stock Exchange with <strong>real market data</strong> and <strong>Rs. 10,00,000</strong> virtual money. Build confidence before investing real capital.
                             </p>
 
                             {/* CTA Buttons */}
-                            <div className="flex flex-wrap gap-4 mt-8 animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                            <div className="flex flex-wrap gap-4 mt-8 animate-slide-up animate-in delay-300">
                                 <button
                                     onClick={() => navigate('/login', { state: { register: true } })}
                                     className="group bg-mero-teal hover:bg-mero-darkTeal text-white font-semibold px-7 py-3.5 rounded-full transition-all duration-300 hover:shadow-xl hover:shadow-mero-teal/20 active:scale-95 flex items-center gap-2"
@@ -198,7 +200,7 @@ export const Landing = () => {
                             </div>
 
                             {/* Trust badges */}
-                            <div className="mt-10 flex items-center gap-6 animate-fade-in delay-500" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                            <div className="mt-10 flex items-center gap-6 animate-fade-in animate-in delay-500">
                                 <div className="flex -space-x-2">
                                     {['bg-teal-500', 'bg-blue-500', 'bg-purple-500', 'bg-orange-500'].map((bg, i) => (
                                         <div key={i} className={`w-8 h-8 rounded-full ${bg} border-2 border-white flex items-center justify-center text-white text-xs font-bold`}>
@@ -213,7 +215,7 @@ export const Landing = () => {
                         </div>
 
                         {/* Right - Live Market Card */}
-                        <div className="animate-scale-in delay-300" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                        <div className="animate-scale-in animate-in delay-300">
                             <div className="relative">
                                 {/* Glow effect */}
                                 <div className="absolute -inset-4 bg-gradient-to-r from-mero-teal/20 via-transparent to-mero-orange/20 rounded-3xl blur-2xl opacity-60 animate-pulse-soft" />

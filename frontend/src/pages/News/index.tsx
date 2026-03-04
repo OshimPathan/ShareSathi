@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Newspaper, Clock, ExternalLink } from 'lucide-react';
 import { getNews, getNewsCategories } from '../../services/db';
+import SEO from '../../components/ui/SEO';
 import PublicLayout from '../../components/layout/PublicLayout';
 import type { NewsItem } from '../../types';
 
@@ -50,6 +51,7 @@ export const NewsPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="Financial News" description="Latest news and updates from Nepal's financial market, NEPSE announcements, and company disclosures." canonical="/news" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold tracking-tight text-slate-800 flex items-center gap-3">

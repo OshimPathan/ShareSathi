@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, NavLink, Link } from "react-router-dom";
-import { User, LogOut, Settings, LayoutDashboard, LineChart, Briefcase, Eye, Search, Menu, X, Sun, Moon, Monitor } from "lucide-react";
+import { User, LogOut, Settings, LayoutDashboard, LineChart, Briefcase, Eye, Search, Menu, X, Sun, Moon, Monitor, GraduationCap } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { SearchableDropdown } from "../ui/SearchableDropdown";
 import { useAuthStore } from "../../store/authStore";
@@ -8,12 +8,13 @@ import { useThemeStore } from "../../store/themeStore";
 import { useI18nStore, type Locale } from "../../store/i18nStore";
 import { NotificationBell } from "../ui/NotificationBell";
 
-type NavKey = "dashboard" | "trading" | "portfolio" | "watchlist";
+type NavKey = "dashboard" | "trading" | "portfolio" | "watchlist" | "practice";
 const navItems: { to: string; key: NavKey; icon: typeof LayoutDashboard }[] = [
     { to: "/dashboard", key: "dashboard", icon: LayoutDashboard },
     { to: "/trade", key: "trading", icon: LineChart },
     { to: "/portfolio", key: "portfolio", icon: Briefcase },
     { to: "/watchlist", key: "watchlist", icon: Eye },
+    { to: "/practice", key: "practice", icon: GraduationCap },
 ];
 
 export const Navbar = ({ className }: { className?: string }) => {

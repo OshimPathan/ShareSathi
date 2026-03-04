@@ -3,6 +3,7 @@ import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { getMarketBundle, getSubIndices } from '../../services/db';
 import PublicLayout from '../../components/layout/PublicLayout';
+import SEO from '../../components/ui/SEO';
 import type { Stock, MarketSummary, SubIndex } from '../../types';
 
 export const ReportsPage = () => {
@@ -65,6 +66,7 @@ export const ReportsPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="Market Reports & Analysis" description="Comprehensive NEPSE market insights, sector-wise analysis, and performance reports." canonical="/reports" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold tracking-tight text-slate-800 flex items-center gap-3">

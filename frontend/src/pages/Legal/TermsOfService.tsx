@@ -1,8 +1,10 @@
 import PublicLayout from "../../components/layout/PublicLayout";
+import SEO from '../../components/ui/SEO';
 
 export const TermsOfService = () => {
     return (
         <PublicLayout showTicker={false}>
+            <SEO title="Terms of Service" description="ShareSathi terms and conditions for using our paper trading platform and services." canonical="/terms" />
             <div className="py-16 px-4 md:px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl bg-white border border-slate-200 p-8 rounded-xl shadow-sm prose prose-slate max-w-none">
                     <h1 className="text-3xl font-bold text-slate-800 mb-6 border-b border-slate-100 pb-4">Terms of Service</h1>

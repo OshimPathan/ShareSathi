@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BookOpen, TrendingUp, Shield, PieChart, Landmark, ChevronDown, ChevronRight, GraduationCap, Lightbulb, Target, BarChart3 } from "lucide-react";
 import PublicLayout from "../../components/layout/PublicLayout";
+import SEO from '../../components/ui/SEO';
 
 interface Lesson {
   id: string;
@@ -275,6 +276,7 @@ const LearnPage = () => {
 
   return (
     <PublicLayout showTicker={false}>
+      <SEO title="Learn Stock Trading" description="Master NEPSE investing with free tutorials. Learn stock fundamentals, technical analysis, risk management, and portfolio building." canonical="/learn" />
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
         {/* Header */}
         <header className="mb-8 animate-slide-up">

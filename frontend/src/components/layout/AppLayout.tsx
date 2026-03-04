@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
+import BottomNav from "./BottomNav";
 import { Footer } from "./Footer";
 import Ticker from "../domain/Ticker";
 import PaperTradingBanner from "./PaperTradingBanner";
@@ -12,13 +13,14 @@ export const AppLayout = () => {
             <Navbar />
             <Ticker />
 
-            <main id="main-content" className="flex-1 w-full py-6 px-4 md:px-6 lg:px-8" role="main">
+            <main id="main-content" className="flex-1 w-full py-6 px-4 md:px-6 lg:px-8 pb-20 md:pb-6" role="main">
                 <div className="mx-auto max-w-7xl animate-fade-in">
                     <Outlet />
                 </div>
             </main>
 
             <Footer />
+            <BottomNav />
         </div>
     );
 };

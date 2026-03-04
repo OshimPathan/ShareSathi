@@ -180,8 +180,8 @@ class TradingService:
 
         portfolio.quantity -= quantity
         if portfolio.quantity == 0:
-            portfolio.average_buy_price = Decimal("0.00")
-
+            await self.db.delete(portfolio)
+        
         wallet.balance += net_revenue
 
         transaction = Transaction(

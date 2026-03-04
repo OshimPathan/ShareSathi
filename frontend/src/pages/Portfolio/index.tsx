@@ -4,6 +4,7 @@ import { Wallet, TrendingUp, DollarSign, PieChart as PieChartIcon, ArrowUpRight,
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { getWallet, getPortfolio } from "../../services/db";
 import type { PortfolioAsset, PortfolioSummary } from "../../types";
+import SEO from '../../components/ui/SEO';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 
 export const Portfolio = () => {
@@ -58,6 +59,7 @@ export const Portfolio = () => {
 
     return (
         <div className="space-y-6">
+            <SEO title="Portfolio" description="Track your simulated NEPSE investments and performance. View holdings, P/L, and sector allocation." canonical="/portfolio" />
             {/* Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-slide-up">
                 <div>
@@ -81,7 +83,7 @@ export const Portfolio = () => {
             )}
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up animate-in delay-100">
                 <div className="rounded-xl bg-gradient-to-br from-blue-50 to-white border border-blue-200/50 p-4 dark:from-blue-900/20 dark:to-slate-800 dark:border-blue-800/30">
                     <div className="flex items-center gap-2 mb-2">
                         <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center"><Wallet className="w-4 h-4 text-blue-600" /></div>
@@ -120,7 +122,7 @@ export const Portfolio = () => {
             </div>
 
             {/* Holdings + Sector Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up animate-in delay-200">
                 <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle className="text-slate-900 dark:text-white">Holdings</CardTitle>

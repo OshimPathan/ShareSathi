@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button";
 import PublicLayout from "../../components/layout/PublicLayout";
 import { useAuthStore } from "../../store/authStore";
 import { getStockBySymbol, getStockHistory, getWallet, executeTrade, getStocksBySector } from "../../services/db";
+import SEO from '../../components/ui/SEO';
 import type { Stock, HistoricalPrice } from "../../types";
 import { ArrowUpRight, ArrowDownRight, Zap, BarChart3, Activity, ShieldCheck, Info, LogIn, Loader2 } from "lucide-react";
 import { StockDetailSkeleton } from "../../components/ui/Skeleton";
@@ -130,6 +131,7 @@ export const StockDetail = () => {
 
     return (
         <PublicLayout>
+        <SEO title={`${details?.symbol || symbol} — ${details?.company_name || 'Stock Detail'}`} description={`Live price, chart, and trading for ${details?.symbol || symbol} on NEPSE. Current LTP: Rs ${currentPrice.toFixed(2)}`} canonical={`/stock/${symbol}`} />
         <div className="space-y-6">
             {/* Hero Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 animate-slide-up">
@@ -140,7 +142,7 @@ export const StockDetail = () => {
                     </div>
                     <p className="text-slate-500 mt-1 text-sm">{details?.company_name || "Unknown Company"}</p>
                 </div>
-                <div className="text-right animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                <div className="text-right animate-slide-up animate-in delay-100">
                     <div className="text-3xl font-extrabold font-mono text-slate-900 dark:text-white">Rs. {currentPrice.toFixed(2)}</div>
                     <div className={`inline-flex items-center gap-1 text-sm font-bold mt-1 px-2 py-0.5 rounded-full ${isPositive ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'}`}>
                         {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
@@ -152,7 +154,7 @@ export const StockDetail = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Charts */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+                    <Card className="animate-slide-up animate-in delay-100">
                         <CardHeader>
                             <div className="flex items-center justify-between flex-wrap gap-2">
                                 <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
@@ -185,7 +187,7 @@ export const StockDetail = () => {
                         </CardContent>
                     </Card>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up animate-in delay-200">
                         {/* AI Forecast – Coming Soon */}
                         <Card className="overflow-hidden relative">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
@@ -239,7 +241,7 @@ export const StockDetail = () => {
 
                     {/* Stock Info Panel */}
                     {details && (
-                        <Card className="animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+                        <Card className="animate-slide-up animate-in delay-300">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-slate-900">
                                     <Info className="w-4 h-4 text-slate-400" />
@@ -275,7 +277,7 @@ export const StockDetail = () => {
 
                     {/* Peer Comparison */}
                     {peers.length > 0 && (
-                        <Card className="animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+                        <Card className="animate-slide-up animate-in delay-300">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
                                     <BarChart3 className="w-4 h-4 text-indigo-500" />
@@ -320,7 +322,7 @@ export const StockDetail = () => {
                 </div>
 
                 {/* Right Column - Trading & Stats */}
-                <div className="space-y-6 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                <div className="space-y-6 animate-slide-up animate-in delay-200">
                     {isAuthenticated ? (
                     <Card className="sticky top-24 shadow-lg">
                         <CardHeader>

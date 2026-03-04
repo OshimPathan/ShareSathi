@@ -3,16 +3,21 @@ import { useParams, Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react';
 import { getTopGainers, getTopLosers, getTopTurnovers } from '../../services/db';
 import PublicLayout from '../../components/layout/PublicLayout';
+import { useT } from '../../store/i18nStore';
+import SEO from '../../components/ui/SEO';
 import type { Stock } from '../../types';
 
 export const MarketDataPage = () => {
     const { type } = useParams<{ type: string }>();
+    const t = useT();
     const [data, setData] = useState<Stock[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<string>('');
 
     useEffect(() => {
         const fetchData = async () => {
+            setError(null);
             try {
                 let result: Stock[] = [];
                 if (type === 'gainers') {
@@ -24,8 +29,9 @@ export const MarketDataPage = () => {
                 }
                 setData(result);
                 setLastUpdated(new Date().toISOString().slice(0, 10).replace(/-/g, '/'));
-            } catch (error) {
-                console.error("Failed to fetch market data", error);
+            } catch (err) {
+                console.error("Failed to fetch market data", err);
+                setError(t.marketData.loadFailed);
             } finally {
                 setLoading(false);
             }
@@ -36,58 +42,70 @@ export const MarketDataPage = () => {
 
     const getTitle = () => {
         switch (type) {
-            case 'gainers': return 'Top Gainers';
-            case 'losers': return 'Top Losers';
-            case 'turnovers': return 'Top Turnovers';
-            default: return 'Market Data';
+            case 'gainers': return t.marketData.topGainers;
+            case 'losers': return t.marketData.topLosers;
+            case 'turnovers': return t.marketData.topTurnovers;
+            default: return t.marketData.title;
         }
     };
 
     return (
         <PublicLayout>
+            <SEO title={`${type === 'gainers' ? 'Top Gainers' : type === 'losers' ? 'Top Losers' : 'Top Turnovers'} — Market Data`} description={`NEPSE ${type === 'gainers' ? 'top gaining' : type === 'losers' ? 'top losing' : 'most traded'} stocks today with live prices and percentage changes.`} canonical={`/market/${type}`} />
             <div className="w-full py-8 px-4 md:px-6 lg:px-8">
                 <div className="mx-auto max-w-5xl">
 
                     <div className="mb-6 flex items-center justify-between">
                         <div>
                             <Link to="/" className="text-slate-500 hover:text-mero-teal text-sm flex items-center gap-1 mb-2 transition-colors">
-                                <ArrowLeft className="w-4 h-4" /> Back to Home
+                                <ArrowLeft className="w-4 h-4" /> {t.marketData.backToHome}
                             </Link>
                             <h1 className="text-3xl font-bold tracking-tight text-slate-800">{getTitle()}</h1>
-                            <p className="text-slate-500 mt-1">Live updates from the Nepal Stock Exchange</p>
+                            <p className="text-slate-500 mt-1">{t.marketData.subtitle}</p>
                         </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden animate-slide-up" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+                    <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden animate-slide-up">
                         <div className="bg-mero-teal text-white flex justify-between items-center px-6 py-3 border-b border-mero-darkTeal">
                             <h3 className="font-bold tracking-wide uppercase">{getTitle()}</h3>
                             <span className="bg-mero-orange text-white text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-full shadow-sm">
-                                As of {lastUpdated || '...'}
+                                {t.marketData.asOf} {lastUpdated || '...'}
                             </span>
                         </div>
 
                         <div className="w-full">
                             {loading && data.length === 0 ? (
-                                <div className="p-8 text-center text-slate-500">Loading market data...</div>
+                                <div className="p-8 text-center text-slate-500">{t.marketData.loadingMarketData}</div>
+                            ) : error ? (
+                                <div className="p-8 text-center">
+                                    <p className="text-rose-600 font-medium mb-3">{error}</p>
+                                    <button onClick={() => window.location.reload()} className="px-4 py-2 bg-mero-teal text-white text-sm font-medium rounded-lg hover:bg-mero-darkTeal transition-colors">
+                                        {t.marketData.tryAgain}
+                                    </button>
+                                </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                                             <tr>
-                                                <th className="px-6 py-4 font-bold">Symbol</th>
-                                                <th className="px-6 py-4 text-right font-bold">LTP (Rs)</th>
+                                                <th className="px-6 py-4 font-bold">{t.marketData.symbol}</th>
+                                                <th className="px-6 py-4 text-right font-bold">{t.marketData.ltpRs}</th>
                                                 {type === 'turnovers' ? (
-                                                    <th className="px-6 py-4 text-right font-bold">Turnover</th>
+                                                    <th className="px-6 py-4 text-right font-bold">{t.marketData.turnover}</th>
                                                 ) : (
-                                                    <th className="px-6 py-4 text-right font-bold">% Change</th>
+                                                    <th className="px-6 py-4 text-right font-bold">{t.marketData.percentChange}</th>
                                                 )}
-                                                <th className="px-6 py-4 text-right font-bold hidden sm:table-cell">Point Change</th>
+                                                <th className="px-6 py-4 text-right font-bold hidden sm:table-cell">{t.marketData.pointChange}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {data.map((stock, idx) => (
-                                                <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-3 font-bold text-mero-teal hover:underline cursor-pointer">{stock.symbol}</td>
+                                            {data.map((stock) => (
+                                                <tr key={stock.symbol} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                                    <td className="px-6 py-3 font-bold">
+                                                        <Link to={`/stock/${stock.symbol}`} className="text-mero-teal hover:underline">
+                                                            {stock.symbol}
+                                                        </Link>
+                                                    </td>
                                                     <td className="px-6 py-3 font-mono text-right font-medium text-slate-800">{Number(stock.ltp).toFixed(2)}</td>
 
                                                     {type === 'turnovers' ? (
@@ -109,7 +127,7 @@ export const MarketDataPage = () => {
                                             ))}
                                             {data.length === 0 && !loading && (
                                                 <tr>
-                                                    <td colSpan={4} className="px-6 py-8 text-center text-slate-500 italic">No data available for {getTitle()}.</td>
+                                                    <td colSpan={4} className="px-6 py-8 text-center text-slate-500 italic">{t.marketData.noData}</td>
                                                 </tr>
                                             )}
                                         </tbody>

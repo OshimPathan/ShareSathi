@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown, BarChart3, Activity, Building2, RefreshCw } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { getMarketBundle, getAllStocks, getSubIndices } from '../../services/db';
+import SEO from '../../components/ui/SEO';
 import PublicLayout from '../../components/layout/PublicLayout';
 import type { Stock, MarketSummary, SubIndex } from '../../types';
 import { MarketSkeleton } from '../../components/ui/Skeleton';
@@ -84,6 +85,7 @@ export const MarketPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="Market Data" description="Real-time NEPSE market data including index, top gainers, losers, turnovers, and sector indices." canonical="/market" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                     <div>

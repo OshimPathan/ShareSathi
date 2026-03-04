@@ -3,6 +3,7 @@ import { Gift, Copy, Check, Share2, Users, Crown, ArrowRight, Sparkles } from "l
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { useAuthStore } from "../../store/authStore";
+import SEO from '../../components/ui/SEO';
 
 const ReferralPage = () => {
   const user = useAuthStore((s) => s.user);
@@ -82,6 +83,7 @@ const ReferralPage = () => {
 
   return (
     <div className="space-y-6">
+      <SEO title="Referral Program" description="Invite friends to ShareSathi and earn rewards. Share your referral link to unlock premium features." canonical="/referral" noIndex />
       {/* Header */}
       <header className="animate-slide-up">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-mero-teal via-emerald-600 to-teal-700 p-6 md:p-8 text-white">
@@ -104,7 +106,7 @@ const ReferralPage = () => {
       </header>
 
       {/* Referral Code Card */}
-      <Card className="animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+      <Card className="animate-slide-up animate-in delay-100">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-white">Your Referral Link</CardTitle>
         </CardHeader>
@@ -146,7 +148,7 @@ const ReferralPage = () => {
       </Card>
 
       {/* How It Works */}
-      <div className="animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+      <div className="animate-slide-up animate-in delay-200">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {rewards.map((step, i) => (
@@ -174,7 +176,7 @@ const ReferralPage = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up animate-in delay-300">
         {[
           { label: "Total Referrals", value: stats.totalReferrals, icon: <Users className="w-4 h-4 text-blue-600" /> },
           { label: "Active Friends", value: stats.activeReferrals, icon: <Users className="w-4 h-4 text-emerald-600" /> },
@@ -194,7 +196,7 @@ const ReferralPage = () => {
       </div>
 
       {/* Referral History (empty state) */}
-      <Card className="animate-slide-up delay-400" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+      <Card className="animate-slide-up animate-in delay-400">
         <CardHeader>
           <CardTitle className="text-slate-900 dark:text-white">Referral History</CardTitle>
         </CardHeader>

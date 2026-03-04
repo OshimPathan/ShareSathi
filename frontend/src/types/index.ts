@@ -137,3 +137,56 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+// === Practice Credits ===
+export interface CreditPackage {
+  id: string;
+  name: string;
+  price_npr: number;
+  credits: number;
+  bonus_credits: number;
+  description: string | null;
+  is_popular: boolean;
+  is_active: boolean;
+  sort_order: number;
+}
+
+export interface UserCredits {
+  id: string;
+  user_id: string;
+  balance: number;
+  total_purchased: number;
+  total_spent: number;
+}
+
+export interface CreditTransaction {
+  id: string;
+  user_id: string;
+  type: 'purchase' | 'trade_debit' | 'bonus' | 'refund';
+  amount: number;
+  balance_after: number;
+  description: string | null;
+  package_id: string | null;
+  payment_reference: string | null;
+  created_at: string;
+}
+
+export interface PracticePortfolioItem {
+  id: string;
+  user_id: string;
+  symbol: string;
+  quantity: number;
+  average_buy_price: number;
+}
+
+export interface PracticeTrade {
+  id: string;
+  user_id: string;
+  symbol: string;
+  action: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  credits_used: number;
+  fees: number;
+  created_at: string;
+}

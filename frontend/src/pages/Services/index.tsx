@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BarChart3, Shield, Brain, Bell, Wallet, LineChart, PieChart, ArrowRight, CheckCircle2, Zap, Activity } from 'lucide-react';
 import { getMarketBundle } from '../../services/db';
 import PublicLayout from '../../components/layout/PublicLayout';
+import SEO from '../../components/ui/SEO';
 import type { Stock, MarketSummary } from '../../types';
 
 export const ServicesPage = () => {
@@ -84,6 +85,7 @@ export const ServicesPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="Services" description="ShareSathi's comprehensive suite of tools — real-time NEPSE data, paper trading, AI insights, portfolio analytics, and more." canonical="/services" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 {/* Hero Section */}
                 <div className="text-center mb-12">

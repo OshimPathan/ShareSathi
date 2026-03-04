@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, Clock, Building2, AlertCircle } from 'lucide-react';
 import { getIpos } from '../../services/db';
+import SEO from '../../components/ui/SEO';
 import PublicLayout from '../../components/layout/PublicLayout';
 import type { IpoData } from '../../types';
 
@@ -44,6 +45,7 @@ export const IpoPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="IPO & Issues" description="Track Initial Public Offerings and share issues in NEPSE. View open, upcoming, and closed IPOs." canonical="/ipo" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">

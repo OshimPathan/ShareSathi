@@ -8,9 +8,10 @@ from app.background.historical_sync import sync_historical_data
 scheduler = AsyncIOScheduler()
 
 def start_scheduler():
+    # NEPSE trades Sun-Thu. In APScheduler: sun=6, mon=0, tue=1, wed=2, thu=3
     scheduler.add_job(
         sync_eod_market_data,
-        CronTrigger(hour=15, minute=15, day_of_week='0-4'),
+        CronTrigger(hour=15, minute=15, day_of_week='sun-thu'),
         id="sync_eod",
         replace_existing=True
     )

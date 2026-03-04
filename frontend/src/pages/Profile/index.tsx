@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Ca
 import { useAuthStore } from "../../store/authStore";
 import { useSubscriptionStore, PLAN_PRICING } from "../../store/subscriptionStore";
 import { User, Shield, Mail, CheckCircle, AlertCircle, Crown, ArrowUpRight, Trash2, KeyRound, Users } from "lucide-react";
+import SEO from '../../components/ui/SEO';
 
 export const Profile = () => {
     const { user, updateProfile, isLoading, initialize, isInitialized } = useAuthStore();
@@ -49,6 +50,7 @@ export const Profile = () => {
 
     return (
         <div className="space-y-6 max-w-2xl mx-auto">
+            <SEO title="Profile & Settings" description="Manage your ShareSathi account, subscription plan, and profile settings." canonical="/profile" noIndex />
             <header className="animate-slide-up">
                 <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
                     <User className="w-6 h-6 text-mero-teal" /> Profile & Settings
@@ -57,7 +59,7 @@ export const Profile = () => {
             </header>
 
             {/* Subscription Tier Card */}
-            <div className={`rounded-2xl bg-gradient-to-r ${tierColors[tier]} p-[1px] animate-slide-up delay-100`} style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className={`rounded-2xl bg-gradient-to-r ${tierColors[tier]} p-[1px] animate-slide-up animate-in delay-100`}>
                 <div className="bg-white rounded-2xl p-5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -95,7 +97,7 @@ export const Profile = () => {
             </div>
 
             {/* Account Info Card */}
-            <Card className="animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+            <Card className="animate-slide-up animate-in delay-200">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-slate-900">
                         <Shield className="w-4 h-4 text-slate-400" /> Account Information
@@ -155,7 +157,7 @@ export const Profile = () => {
             </Card>
 
             {/* Account Details Card */}
-            <Card className="animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+            <Card className="animate-slide-up animate-in delay-300">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-slate-900">
                         <KeyRound className="w-4 h-4 text-slate-400" /> Account Details
@@ -180,7 +182,7 @@ export const Profile = () => {
             </Card>
 
             {/* Danger Zone */}
-            <Card className="animate-slide-up delay-400" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+            <Card className="animate-slide-up animate-in delay-400">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-rose-600">
                         <Trash2 className="w-4 h-4" /> Danger Zone

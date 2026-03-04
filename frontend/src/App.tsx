@@ -42,6 +42,8 @@ const ReferralPage = lazy(() => import('./pages/Referral'));
 const ScreenerPage = lazy(() => import('./pages/Screener'));
 const LeaderboardPage = lazy(() => import('./pages/Leaderboard'));
 const PublicPortfolioPage = lazy(() => import('./pages/PublicPortfolio'));
+const BuyCreditsPage = lazy(() => import('./pages/BuyCredits'));
+const PracticeTradingPage = lazy(() => import('./pages/PracticeTrading'));
 
 function PageLoader() {
   return (
@@ -82,6 +84,7 @@ function App() {
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/portfolio/public/:userId" element={<PublicPortfolioPage />} />
         <Route path="/stock/:symbol" element={<StockDetail />} />
+        <Route path="/buy-credits" element={<BuyCreditsPage />} />
 
         {/* Wrap all authenticated pages in ProtectedRoute */}
         <Route element={<ProtectedRoute />}>
@@ -93,6 +96,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/referral" element={<ReferralPage />} />
+            <Route path="/practice" element={<PracticeTradingPage />} />
           </Route>
         </Route>
 

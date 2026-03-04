@@ -4,6 +4,8 @@ import { Card, CardContent } from "../../components/ui/Card";
 import PublicLayout from "../../components/layout/PublicLayout";
 import { getLeaderboard, type LeaderboardEntry } from "../../services/db";
 import { useAuthStore } from "../../store/authStore";
+import { useT } from "../../store/i18nStore";
+import SEO from '../../components/ui/SEO';
 
 const RANK_STYLES = [
   { bg: "bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-slate-800", badge: "bg-gradient-to-br from-amber-400 to-yellow-500", text: "text-amber-700 dark:text-amber-400" },
@@ -14,9 +16,9 @@ const RANK_STYLES = [
 const LeaderboardPage = () => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<"all" | "monthly">("all");
   const [sortBy, setSortBy] = useState<"pnl_percentage" | "total_pnl" | "total_trades">("pnl_percentage");
   const user = useAuthStore((s) => s.user);
+  const t = useT();
 
   useEffect(() => {
     (async () => {
@@ -41,6 +43,7 @@ const LeaderboardPage = () => {
 
   return (
     <PublicLayout>
+      <SEO title="Leaderboard" description="Top paper traders on ShareSathi. See who has the best returns, most holdings and trade activity on NEPSE." canonical="/leaderboard" />
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="animate-slide-up">
@@ -50,10 +53,10 @@ const LeaderboardPage = () => {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Leaderboard
+                {t.leaderboard.title}
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Top paper traders on ShareSathi
+                {t.leaderboard.subtitle}
               </p>
             </div>
           </div>
@@ -61,7 +64,7 @@ const LeaderboardPage = () => {
 
         {/* Your Rank Card */}
         {myEntry && (
-          <Card className="border-mero-teal/30 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+          <Card className="border-mero-teal/30 animate-slide-up animate-in delay-100">
             <CardContent className="pt-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -69,9 +72,9 @@ const LeaderboardPage = () => {
                     <span className="text-lg font-extrabold text-mero-teal">#{myRank}</span>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">Your Ranking</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t.leaderboard.yourRanking}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {myEntry.holdings_count} holdings · {myEntry.total_trades} trades
+                      {myEntry.holdings_count} {t.leaderboard.holdings} · {myEntry.total_trades} {t.leaderboard.trades}
                     </p>
                   </div>
                 </div>
@@ -89,12 +92,12 @@ const LeaderboardPage = () => {
         )}
 
         {/* Sort Controls */}
-        <div className="flex items-center gap-2 flex-wrap animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">Sort by:</span>
+        <div className="flex items-center gap-2 flex-wrap animate-slide-up animate-in delay-200">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">{t.leaderboard.sortBy}</span>
           {[
-            { key: "pnl_percentage" as const, label: "Return %", icon: <TrendingUp className="w-3 h-3" /> },
-            { key: "total_pnl" as const, label: "Total P/L", icon: <BarChart3 className="w-3 h-3" /> },
-            { key: "total_trades" as const, label: "Most Active", icon: <Users className="w-3 h-3" /> },
+            { key: "pnl_percentage" as const, label: t.leaderboard.returnPercent, icon: <TrendingUp className="w-3 h-3" /> },
+            { key: "total_pnl" as const, label: t.leaderboard.totalPnl, icon: <BarChart3 className="w-3 h-3" /> },
+            { key: "total_trades" as const, label: t.leaderboard.mostActive, icon: <Users className="w-3 h-3" /> },
           ].map((opt) => (
             <button
               key={opt.key}
@@ -108,26 +111,11 @@ const LeaderboardPage = () => {
               {opt.icon} {opt.label}
             </button>
           ))}
-          <div className="ml-auto flex gap-1">
-            {(["all", "monthly"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTimeframe(t)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  timeframe === t
-                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                    : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                {t === "all" ? "All Time" : "This Month"}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Top 3 Podium */}
         {!loading && topThree.length >= 3 && (
-          <div className="grid grid-cols-3 gap-4 animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+          <div className="grid grid-cols-3 gap-4 animate-slide-up animate-in delay-300">
             {[1, 0, 2].map((podiumIdx) => {
               const entry = topThree[podiumIdx];
               const rank = podiumIdx + 1;
@@ -169,12 +157,12 @@ const LeaderboardPage = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-700">
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 dark:text-slate-400">Rank</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-500 dark:text-slate-400">Trader</th>
-                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400">Return %</th>
-                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400">P/L (Rs.)</th>
-                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400 hidden md:table-cell">Holdings</th>
-                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400 hidden md:table-cell">Trades</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-500 dark:text-slate-400">{t.leaderboard.rank}</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-500 dark:text-slate-400">{t.leaderboard.trader}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400">{t.leaderboard.returnPercent}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400">{t.leaderboard.pnlRs}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400 hidden md:table-cell">{t.leaderboard.holdings}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-slate-500 dark:text-slate-400 hidden md:table-cell">{t.leaderboard.trades}</th>
                 </tr>
               </thead>
               <tbody>
@@ -192,8 +180,8 @@ const LeaderboardPage = () => {
                   <tr>
                     <td colSpan={6} className="px-4 py-16 text-center">
                       <Trophy className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">No traders on the leaderboard yet</p>
-                      <p className="text-xs text-slate-400 mt-1">Start trading to appear here!</p>
+                      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{t.leaderboard.noTraders}</p>
+                      <p className="text-xs text-slate-400 mt-1">{t.leaderboard.startTrading}</p>
                     </td>
                   </tr>
                 ) : (
@@ -215,7 +203,7 @@ const LeaderboardPage = () => {
                             </div>
                             <span className="font-semibold text-slate-900 dark:text-white text-sm">
                               {entry.user_name}
-                              {isMe && <span className="ml-1 text-[10px] text-mero-teal font-bold">(You)</span>}
+                              {isMe && <span className="ml-1 text-[10px] text-mero-teal font-bold">{t.leaderboard.you}</span>}
                             </span>
                           </div>
                         </td>
@@ -255,6 +243,7 @@ const LeaderboardPage = () => {
 function SharePortfolioCTA() {
   const user = useAuthStore((s) => s.user);
   const [copied, setCopied] = useState(false);
+  const t = useT();
 
   if (!user) return null;
 
@@ -284,8 +273,8 @@ function SharePortfolioCTA() {
               <Share2 className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">Share Your Portfolio</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Let others see your paper trading performance</p>
+              <p className="text-sm font-bold text-slate-900 dark:text-white">{t.leaderboard.sharePortfolio}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t.leaderboard.sharePortfolioSub}</p>
             </div>
           </div>
           <button
@@ -297,7 +286,7 @@ function SharePortfolioCTA() {
             }`}
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {copied ? "Copied!" : "Copy Link"}
+            {copied ? t.leaderboard.copied : t.leaderboard.copyLink}
           </button>
         </div>
       </CardContent>

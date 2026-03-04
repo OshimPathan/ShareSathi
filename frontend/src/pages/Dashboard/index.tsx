@@ -5,9 +5,12 @@ import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Ca
 import { IpoWidget } from "../../components/domain/IpoWidget";
 import OnboardingModal from "../../components/domain/OnboardingModal";
 import { getMarketBundle, getAllStocks } from "../../services/db";
+import { useT } from "../../store/i18nStore";
+import SEO from '../../components/ui/SEO';
 import type { Stock, MarketSummary, SubIndex } from "../../types";
 
 export const Dashboard = () => {
+    const t = useT();
     const [summary, setSummary] = useState<MarketSummary | null>(null);
     const [topGainers, setTopGainers] = useState<Stock[]>([]);
     const [topLosers, setTopLosers] = useState<Stock[]>([]);
@@ -47,27 +50,28 @@ export const Dashboard = () => {
 
     return (
         <div className="space-y-6">
+            <SEO title="Dashboard" description="Live NEPSE market dashboard with real-time index, top gainers, losers, and sector performance." canonical="/dashboard" />
             <OnboardingModal />
 
             {/* Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-slide-up">
                 <div>
-                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Market Dashboard</h1>
-                    <p className="text-sm text-slate-500 mt-0.5">Live NEPSE data · Paper trading</p>
+                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t.dashboard.title}</h1>
+                    <p className="text-sm text-slate-500 mt-0.5">{t.dashboard.subtitle}</p>
                 </div>
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border transition-colors ${loaded && summary ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                     <span className={`w-2 h-2 rounded-full ${loaded && summary ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                    {loaded && summary ? summary.market_status || "Data Loaded" : "Loading..."}
+                    {loaded && summary ? summary.market_status || t.dashboard.dataLoaded : t.common.loading}
                 </div>
             </header>
 
             {/* KPI Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 animate-slide-up animate-in delay-100">
                 <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {/* NEPSE Index */}
                     <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 text-white p-5">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-mero-teal/10 rounded-full blur-2xl" />
-                        <p className="text-xs text-slate-400 font-medium mb-1">NEPSE Index</p>
+                        <p className="text-xs text-slate-400 font-medium mb-1">{t.dashboard.nepseIndex}</p>
                         <div className="text-3xl font-extrabold font-mono">
                             {summary?.nepse_index ? Number(summary.nepse_index).toFixed(2) : "---"}
                         </div>
@@ -83,7 +87,7 @@ export const Dashboard = () => {
                     <Card className="border-0 bg-gradient-to-br from-blue-50 to-white">
                         <CardHeader className="pb-1">
                             <CardTitle className="text-xs text-blue-600 font-semibold flex items-center gap-1.5">
-                                <BarChart3 className="w-3.5 h-3.5" /> Total Turnover
+                                <BarChart3 className="w-3.5 h-3.5" /> {t.dashboard.totalTurnover}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -97,7 +101,7 @@ export const Dashboard = () => {
                     <Card className="border-0 bg-gradient-to-br from-purple-50 to-white">
                         <CardHeader className="pb-1">
                             <CardTitle className="text-xs text-purple-600 font-semibold flex items-center gap-1.5">
-                                <Activity className="w-3.5 h-3.5" /> Total Volume
+                                <Activity className="w-3.5 h-3.5" /> {t.dashboard.totalVolume}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -114,7 +118,7 @@ export const Dashboard = () => {
             </div>
 
             {/* Gainers / Losers / Turnovers */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-up animate-in delay-200">
                 {/* Top Gainers */}
                 <Card>
                     <CardHeader className="pb-3">
@@ -122,13 +126,13 @@ export const Dashboard = () => {
                             <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
                                 <TrendingUp className="w-4 h-4 text-emerald-600" />
                             </div>
-                            <span className="text-slate-900">Top Gainers</span>
+                            <span className="text-slate-900">{t.dashboard.gainers}</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
                             {topGainers.length === 0 ? (
-                                <div className="text-sm text-slate-400 py-6 text-center">No data yet</div>
+                                <div className="text-sm text-slate-400 py-6 text-center">{t.dashboard.noDataYet}</div>
                             ) : (
                                 topGainers.map((stock) => (
                                     <Link to={`/stock/${stock.symbol}`} key={stock.symbol} className="flex justify-between items-center py-2.5 px-2 -mx-2 rounded-lg hover:bg-emerald-50/50 transition-colors group">
@@ -151,13 +155,13 @@ export const Dashboard = () => {
                             <div className="w-7 h-7 rounded-lg bg-rose-100 flex items-center justify-center">
                                 <TrendingDown className="w-4 h-4 text-rose-600" />
                             </div>
-                            <span className="text-slate-900">Top Losers</span>
+                            <span className="text-slate-900">{t.dashboard.losers}</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
                             {topLosers.length === 0 ? (
-                                <div className="text-sm text-slate-400 py-6 text-center">No data yet</div>
+                                <div className="text-sm text-slate-400 py-6 text-center">{t.dashboard.noDataYet}</div>
                             ) : (
                                 topLosers.map((stock) => (
                                     <Link to={`/stock/${stock.symbol}`} key={stock.symbol} className="flex justify-between items-center py-2.5 px-2 -mx-2 rounded-lg hover:bg-rose-50/50 transition-colors group">
@@ -180,13 +184,13 @@ export const Dashboard = () => {
                             <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <BarChart3 className="w-4 h-4 text-blue-600" />
                             </div>
-                            <span className="text-slate-900">Top Turnovers</span>
+                            <span className="text-slate-900">{t.dashboard.topTurnovers}</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
                             {topTurnovers.length === 0 ? (
-                                <div className="text-sm text-slate-400 py-6 text-center">No data yet</div>
+                                <div className="text-sm text-slate-400 py-6 text-center">{t.dashboard.noDataYet}</div>
                             ) : (
                                 topTurnovers.map((stock) => (
                                     <Link to={`/stock/${stock.symbol}`} key={stock.symbol} className="flex justify-between items-center py-2.5 px-2 -mx-2 rounded-lg hover:bg-blue-50/50 transition-colors group">
@@ -202,8 +206,8 @@ export const Dashboard = () => {
 
             {/* Sub-Indices */}
             {subIndices.length > 0 && (
-                <div className="animate-slide-up delay-300" style={{ opacity: 0, animationFillMode: 'forwards' }}>
-                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Sector Indices</h3>
+                <div className="animate-slide-up animate-in delay-300">
+                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">{t.dashboard.sectorIndices}</h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                         {subIndices.map((index) => (
                             <div key={index.sector} className="bg-white rounded-xl border border-slate-200/80 p-3.5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-default dark:bg-slate-800 dark:border-slate-700/60">
@@ -220,13 +224,13 @@ export const Dashboard = () => {
             )}
 
             {/* All Stocks Table */}
-            <div className="animate-slide-up delay-400" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="animate-slide-up animate-in delay-400">
                 <Card>
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <CardTitle className="text-slate-900 dark:text-white">Live Market Watch</CardTitle>
+                        <CardTitle className="text-slate-900 dark:text-white">{t.dashboard.liveMarketWatch}</CardTitle>
                         <input
                             type="text"
-                            placeholder="Filter by symbol..."
+                            placeholder={t.dashboard.filterBySymbol}
                             value={searchFilter}
                             onChange={(e) => setSearchFilter(e.target.value)}
                             className="text-sm px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:border-mero-teal/50 outline-none transition-colors w-full sm:w-48 dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:focus:bg-slate-600"
@@ -237,18 +241,18 @@ export const Dashboard = () => {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="text-xs text-slate-500 uppercase border-b border-slate-200 dark:border-slate-700 dark:text-slate-400">
-                                        <th className="px-6 py-3 text-left font-semibold">Symbol</th>
-                                        <th className="px-6 py-3 text-right font-semibold">LTP (Rs)</th>
-                                        <th className="px-6 py-3 text-right font-semibold">Change</th>
-                                        <th className="px-6 py-3 text-right font-semibold">% Change</th>
-                                        <th className="px-6 py-3 text-right font-semibold">Volume</th>
+                                        <th className="px-6 py-3 text-left font-semibold">{t.dashboard.symbol}</th>
+                                        <th className="px-6 py-3 text-right font-semibold">{t.dashboard.ltpRs}</th>
+                                        <th className="px-6 py-3 text-right font-semibold">{t.dashboard.change}</th>
+                                        <th className="px-6 py-3 text-right font-semibold">{t.dashboard.percentChange}</th>
+                                        <th className="px-6 py-3 text-right font-semibold">{t.dashboard.volume}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredStocks.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-10 text-center text-slate-400">
-                                                {loaded ? "No stocks match your filter" : "Loading market data..."}
+                                                {loaded ? t.dashboard.noStocksMatch : t.dashboard.loadingMarketData}
                                             </td>
                                         </tr>
                                     ) : (

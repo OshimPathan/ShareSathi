@@ -10,6 +10,7 @@ Disallow: /watchlist
 Disallow: /profile
 Disallow: /admin
 Disallow: /referral
+Disallow: /practice
 Disallow: /api/
 
 Sitemap: https://sharesathi.com/sitemap.xml

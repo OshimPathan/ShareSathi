@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { PieChart, Wallet, TrendingUp, BarChart3, ArrowRight, Shield, Target, History } from 'lucide-react';
 import PublicLayout from '../../components/layout/PublicLayout';
+import SEO from '../../components/ui/SEO';
 
 export const PortfolioInfoPage = () => {
     const navigate = useNavigate();
@@ -40,6 +41,7 @@ export const PortfolioInfoPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="Portfolio Management" description="Track, analyze, and manage your NEPSE stock investments with powerful portfolio tools and Rs 10 Lakh virtual cash." canonical="/portfolio-info" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 {/* Header */}
                 <div className="text-center mb-12">

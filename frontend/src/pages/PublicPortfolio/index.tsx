@@ -4,6 +4,7 @@ import { Briefcase, TrendingUp, TrendingDown, ArrowLeft, BarChart3, Activity, Co
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import PublicLayout from "../../components/layout/PublicLayout";
 import { getPublicPortfolio, type PublicPortfolioData } from "../../services/db";
+import SEO from '../../components/ui/SEO';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const COLORS = ["#238b96", "#eda34c", "#6366f1", "#ec4899", "#22c55e", "#f97316", "#8b5cf6", "#14b8a6", "#ef4444", "#3b82f6"];
@@ -92,6 +93,7 @@ const PublicPortfolioPage = () => {
 
   return (
     <PublicLayout>
+      <SEO title={`${data.user_name}'s Portfolio`} description={`View ${data.user_name}'s public paper trading portfolio on ShareSathi. ${data.assets.length} holdings.`} canonical={`/portfolio/public/${userId}`} />
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between animate-slide-up">
@@ -122,7 +124,7 @@ const PublicPortfolioPage = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up" style={{ animationDelay: "0.1s", opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up animate-in delay-100">
           {[
             { label: "Investment", value: `Rs. ${summary.total_investment.toLocaleString("en-NP", { maximumFractionDigits: 0 })}`, icon: Briefcase, color: "blue" },
             { label: "Current Value", value: `Rs. ${summary.total_current_value.toLocaleString("en-NP", { maximumFractionDigits: 0 })}`, icon: BarChart3, color: "indigo" },
@@ -157,7 +159,7 @@ const PublicPortfolioPage = () => {
 
         {/* Sector Allocation */}
         {sectorAlloc.length > 0 && (
-          <Card className="animate-slide-up" style={{ animationDelay: "0.2s", opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+          <Card className="animate-slide-up animate-in delay-200">
             <CardHeader>
               <CardTitle>Sector Allocation</CardTitle>
             </CardHeader>
@@ -192,7 +194,7 @@ const PublicPortfolioPage = () => {
         )}
 
         {/* Holdings Table */}
-        <Card className="animate-slide-up" style={{ animationDelay: "0.3s", opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+        <Card className="animate-slide-up animate-in delay-300">
           <CardHeader>
             <CardTitle>Holdings</CardTitle>
           </CardHeader>

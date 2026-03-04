@@ -5,6 +5,7 @@ import { Star, BellRing, Trash2, Plus, Eye, ArrowUpRight, ArrowDownRight, Refres
 import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
 import { getWatchlist, addToWatchlist, removeFromWatchlist, updateWatchlistAlerts } from "../../services/db";
 import type { WatchlistItem } from "../../types";
+import SEO from '../../components/ui/SEO';
 
 export const Watchlist = () => {
     const [items, setItems] = useState<WatchlistItem[]>([]);
@@ -68,6 +69,7 @@ export const Watchlist = () => {
 
     return (
         <div className="space-y-6">
+            <SEO title="Watchlist" description="Track your favorite NEPSE stocks and set price alerts. Monitor real-time prices for your watched securities." canonical="/watchlist" />
             {/* Header */}
             <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-slide-up">
                 <div>
@@ -84,7 +86,7 @@ export const Watchlist = () => {
             </header>
 
             {/* Add Stock Bar */}
-            <div className="animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: 'forwards' }}>
+            <div className="animate-slide-up animate-in delay-100">
                 <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3 p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50/50 border border-slate-200/80">
                     <div className="flex-1 max-w-sm">
                         <SearchableDropdown
@@ -100,7 +102,7 @@ export const Watchlist = () => {
             </div>
 
             {/* Table Card */}
-            <Card className="animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: 'forwards' } as React.CSSProperties}>
+            <Card className="animate-slide-up animate-in delay-200">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-slate-900">
                         <Star className="w-4 h-4 text-amber-400 fill-amber-400" />

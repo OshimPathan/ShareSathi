@@ -7,7 +7,7 @@ class Wallet(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
-    balance = Column(Numeric(12, 2), default=100000.00, nullable=False) # NEP 1 Lakh default
+    balance = Column(Numeric(12, 2), default=1000000.00, nullable=False) # NPR 10 Lakh default
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
     __table_args__ = (

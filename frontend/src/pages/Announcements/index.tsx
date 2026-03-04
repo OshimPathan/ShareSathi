@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Bell, Clock, Megaphone } from 'lucide-react';
 import { getNews } from '../../services/db';
 import PublicLayout from '../../components/layout/PublicLayout';
+import SEO from '../../components/ui/SEO';
 
 interface Announcement {
     id: number;
@@ -76,6 +77,7 @@ export const AnnouncementsPage = () => {
 
     return (
         <PublicLayout>
+            <SEO title="Company Announcements" description="Important notices, dividends, AGMs, and financial results from NEPSE-listed companies." canonical="/announcements" />
             <div className="container mx-auto max-w-7xl px-4 lg:px-20 py-6">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold tracking-tight text-slate-800 flex items-center gap-3">

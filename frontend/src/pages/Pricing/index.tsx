@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Ca
 import { Button } from '../../components/ui/Button';
 import { PLAN_PRICING, PLAN_FEATURES, type PlanTier } from '../../store/subscriptionStore';
 import { useAuthStore } from '../../store/authStore';
+import SEO from '../../components/ui/SEO';
 
 const FEATURE_LIST = [
     { key: 'maxWatchlist', label: 'Watchlist Stocks', format: (v: number) => v === -1 ? 'Unlimited' : `${v}` },
@@ -23,6 +24,7 @@ export const Pricing = () => {
 
     return (
         <PublicLayout showTicker={false}>
+            <SEO title="Pricing" description="Choose a ShareSathi plan — free paper trading, or upgrade for premium features like advanced screener and AI insights." canonical="/pricing" />
             <div className="py-16 px-4 md:px-6 lg:px-8">
                 <div className="mx-auto max-w-5xl">
                     <div className="text-center mb-12">

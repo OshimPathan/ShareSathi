@@ -5,6 +5,7 @@ import { Card, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import PublicLayout from "../../components/layout/PublicLayout";
 import { getAllStocks } from "../../services/db";
+import SEO from '../../components/ui/SEO';
 import type { Stock } from "../../types";
 
 type SortKey = "symbol" | "ltp" | "percentage_change" | "volume" | "turnover" | "high" | "low";
@@ -137,6 +138,7 @@ const ScreenerPage = () => {
 
   return (
     <PublicLayout>
+      <SEO title="Stock Screener" description="Scan and filter NEPSE stocks by price, volume, sector, and performance. Find the best investment opportunities." canonical="/screener" />
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="animate-slide-up">
@@ -149,7 +151,7 @@ const ScreenerPage = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up delay-100" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-slide-up animate-in delay-100">
           {[
             { label: "Total Stocks", value: stocks.length, icon: <BarChart3 className="w-4 h-4 text-blue-600" /> },
             { label: "Gainers", value: gainers, icon: <TrendingUp className="w-4 h-4 text-emerald-600" /> },
@@ -169,7 +171,7 @@ const ScreenerPage = () => {
         </div>
 
         {/* Search + Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 animate-slide-up delay-200" style={{ opacity: 0, animationFillMode: "forwards" } as React.CSSProperties}>
+        <div className="flex flex-col sm:flex-row gap-3 animate-slide-up animate-in delay-200">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input

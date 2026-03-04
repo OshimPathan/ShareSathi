@@ -1,8 +1,10 @@
 import PublicLayout from "../../components/layout/PublicLayout";
+import SEO from '../../components/ui/SEO';
 
 export const About = () => {
     return (
         <PublicLayout showTicker={false}>
+            <SEO title="About" description="About ShareSathi — Nepal's premier paper trading and NEPSE analytics platform. Founded by Oshim Pathan." canonical="/about" />
             <div className="py-16 px-4 md:px-6 lg:px-8">
                 <div className="mx-auto max-w-4xl bg-white border border-slate-200 p-8 rounded-xl shadow-sm">
                     <h1 className="text-3xl font-bold text-slate-800 mb-6 border-b border-slate-100 pb-4">About ShareSathi</h1>
