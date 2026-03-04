@@ -4,6 +4,7 @@ import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { DashboardSkeleton } from './components/ui/Skeleton';
+import { DisclaimerBanner } from './components/ui/Disclaimer';
 
 // Eager-load the landing page for fast first paint
 import Landing from './pages/Landing';
@@ -57,6 +58,7 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
+      <DisclaimerBanner />
       <Suspense fallback={<PageLoader />}>
         <Routes>
         {/* Public Pages */}

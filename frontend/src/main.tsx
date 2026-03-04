@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ui/ErrorBoundary'
@@ -22,12 +23,25 @@ import ErrorBoundary from './components/ui/ErrorBoundary'
 //   ],
 // });
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,        // 30s — matches market data cache
+      gcTime: 5 * 60 * 1000,    // 5 min garbage collection
+      retry: 2,
+      refetchOnWindowFocus: true,
+    },
+  },
+})
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HelmetProvider>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </HelmetProvider>
+    </QueryClientProvider>
   </StrictMode>,
 )

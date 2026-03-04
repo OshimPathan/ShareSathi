@@ -1,5 +1,6 @@
 import { ChevronUp, Mail, MapPin, Github, Linkedin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { FooterDisclaimer } from "../ui/Disclaimer";
 
 export const Footer = () => {
     const navigate = useNavigate();
@@ -87,6 +88,9 @@ export const Footer = () => {
                             <ChevronUp className="w-4 h-4" />
                         </button>
                     </div>
+
+                    {/* Legal disclaimer */}
+                    <FooterDisclaimer />
                 </div>
             </div>
         </footer>

@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
     branches: [main]
 
 jobs:
+  # ─── Backend: Test ───────────────────────────────────────
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
@@ -25,10 +26,14 @@ jobs:
           cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
 
       - name: Run tests
         env:
+          ENVIRONMENT: test
           DATABASE_URL: sqlite+aiosqlite:///./test.db
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: ci-test-secret-key-min-32-characters!!
@@ -36,39 +41,9 @@ jobs:
           INSFORGE_ANON_KEY: test-key
         run: python -m pytest tests/ -v --tb=short
 
-  frontend-build:
-    name: Frontend Build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npx tsc --noEmit
-        continue-on-error: true
-
-      - name: Build
-        env:
-          VITE_INSFORGE_URL: https://example.insforge.app
-          VITE_INSFORGE_ANON_KEY: test-key
-          VITE_API_URL: http://localhost:8000
-        run: npm run build
-
-  lint:
-    name: Lint
+  # ─── Frontend: Lint + Type Check + Build ─────────────────
+  frontend:
+    name: Frontend Lint, Type Check & Build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -89,4 +64,13 @@ jobs:
 
       - name: ESLint
         run: npx eslint src/ --max-warnings 50
-        continue-on-error: true
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        env:
+          VITE_INSFORGE_URL: ${{ secrets.VITE_INSFORGE_URL || 'https://example.insforge.app' }}
+          VITE_INSFORGE_ANON_KEY: ${{ secrets.VITE_INSFORGE_ANON_KEY || 'test-key' }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://localhost:8000' }}
+        run: npm run build

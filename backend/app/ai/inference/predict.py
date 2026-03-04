@@ -2,6 +2,29 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 from typing import Dict, Any
+from datetime import datetime, timedelta
+
+
+def _calculate_confidence(closes: list, order: tuple = (5, 1, 0)) -> float:
+    """Backtest ARIMA on last 7 days to compute real confidence score (1 - MAPE)."""
+    if len(closes) < 37:
+        return 0.50  # Not enough data for backtesting
+
+    train = closes[:-7]
+    actual = np.array(closes[-7:])
+
+    try:
+        backtest_model = ARIMA(train, order=order)
+        backtest_fit = backtest_model.fit()
+        predicted = np.array(backtest_fit.forecast(steps=7))
+
+        # Mean Absolute Percentage Error
+        mape = float(np.mean(np.abs((actual - predicted) / actual)))
+        confidence = max(0.0, min(1.0, 1.0 - mape))
+        return round(confidence, 2)
+    except Exception:
+        return 0.50  # Fallback if backtest fails
+
 
 def run_prediction(symbol: str, historical_data: Dict[str, Any]) -> Dict[str, Any]:
     history = historical_data.get("history", [])
@@ -21,7 +44,6 @@ def run_prediction(symbol: str, historical_data: Dict[str, Any]) -> Dict[str, An
         
         forecast = []
         
-        from datetime import datetime, timedelta
         last_date_str = history[-1]["date"]
         last_date = datetime.strptime(last_date_str, "%Y-%m-%d")
         
@@ -50,13 +72,17 @@ def run_prediction(symbol: str, historical_data: Dict[str, Any]) -> Dict[str, An
         else:
             risk_level = "Low"
 
+        # Real confidence score from backtesting (not hardcoded)
+        confidence = _calculate_confidence(closes)
+
         return {
             "symbol": symbol.upper(),
             "7_day_forecast": forecast,
             "risk_classification": risk_level,
             "volatility_percentage": round(volatility, 2),
-            "ai_confidence_score": 0.85,
-            "model_used": "ARIMA(5,1,0)"
+            "ai_confidence_score": confidence,
+            "model_used": "ARIMA(5,1,0)",
+            "disclaimer": "AI predictions are for educational purposes only. Not financial advice."
         }
     except Exception as e:
         return {"error": f"Prediction failed: {str(e)}"}
