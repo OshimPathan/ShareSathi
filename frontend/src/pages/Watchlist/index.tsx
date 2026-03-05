@@ -1,70 +1,41 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Star, BellRing, Trash2, Plus, Eye, ArrowUpRight, ArrowDownRight, RefreshCw } from "lucide-react";
 import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
-import { getWatchlist, addToWatchlist, removeFromWatchlist, updateWatchlistAlerts } from "../../services/db";
-import type { WatchlistItem } from "../../types";
+import { useWatchlist, useAddToWatchlist, useRemoveFromWatchlist, useUpdateWatchlistAlerts } from "../../hooks/useTrading";
 import SEO from '../../components/ui/SEO';
 
 export const Watchlist = () => {
-    const [items, setItems] = useState<WatchlistItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: items = [], isLoading } = useWatchlist();
     const [newSymbol, setNewSymbol] = useState("");
     const [editModeId, setEditModeId] = useState<number | null>(null);
     const [editPrices, setEditPrices] = useState({ target: "", stop: "" });
 
-    const fetchWatchlist = async () => {
-        setIsLoading(true);
-        try {
-            const data = await getWatchlist();
-            setItems(data);
-        } catch (error) {
-            console.error("Failed to load watchlist", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchWatchlist();
-    }, []);
+    const addMutation = useAddToWatchlist();
+    const removeMutation = useRemoveFromWatchlist();
+    const alertsMutation = useUpdateWatchlistAlerts();
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newSymbol.trim()) return;
-        try {
-            const result = await addToWatchlist(newSymbol.toUpperCase());
-            if (result.success) {
-                setNewSymbol("");
-                await fetchWatchlist();
-            } else {
-                console.error(result.message);
-            }
-        } catch (err) {
-            console.error(err);
-        }
+        addMutation.mutate(newSymbol.toUpperCase(), {
+            onSuccess: (result) => {
+                if (result.success) setNewSymbol("");
+            },
+        });
     };
 
-    const handleDelete = async (symbol: string) => {
-        try {
-            await removeFromWatchlist(symbol);
-            await fetchWatchlist();
-        } catch (err) {
-            console.error(err);
-        }
+    const handleDelete = (symbol: string) => {
+        removeMutation.mutate(symbol);
     };
 
-    const handleSaveAlerts = async (symbol: string) => {
-        try {
-            const targetPrice = editPrices.target ? parseFloat(editPrices.target) : null;
-            const stopLoss = editPrices.stop ? parseFloat(editPrices.stop) : null;
-            await updateWatchlistAlerts(symbol, targetPrice, stopLoss);
-            setEditModeId(null);
-            await fetchWatchlist();
-        } catch (err) {
-            console.error(err);
-        }
+    const handleSaveAlerts = (symbol: string) => {
+        const targetPrice = editPrices.target ? parseFloat(editPrices.target) : null;
+        const stopLoss = editPrices.stop ? parseFloat(editPrices.stop) : null;
+        alertsMutation.mutate({ symbol, targetPrice, stopLoss }, {
+            onSuccess: () => setEditModeId(null),
+        });
     };
 
     return (

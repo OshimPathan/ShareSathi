@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Trophy, TrendingUp, Users, BarChart3, Crown, Share2, Copy, Check } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
 import PublicLayout from "../../components/layout/PublicLayout";
-import { getLeaderboard, type LeaderboardEntry } from "../../services/db";
+import { useLeaderboard } from "../../hooks/useTrading";
 import { useAuthStore } from "../../store/authStore";
 import { useT } from "../../store/i18nStore";
 import SEO from '../../components/ui/SEO';
@@ -14,20 +14,10 @@ const RANK_STYLES = [
 ];
 
 const LeaderboardPage = () => {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: entries = [], isLoading: loading } = useLeaderboard();
   const [sortBy, setSortBy] = useState<"pnl_percentage" | "total_pnl" | "total_trades">("pnl_percentage");
   const user = useAuthStore((s) => s.user);
   const t = useT();
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const data = await getLeaderboard();
-      setEntries(data);
-      setLoading(false);
-    })();
-  }, []);
 
   const sorted = [...entries].sort((a, b) => {
     if (sortBy === "pnl_percentage") return b.pnl_percentage - a.pnl_percentage;

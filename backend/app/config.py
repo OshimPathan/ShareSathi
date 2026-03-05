@@ -1,13 +1,22 @@
+import secrets
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
+
+
+def _generate_dev_key() -> str:
+    """Generate a random key for local dev so nothing is ever hardcoded."""
+    return secrets.token_urlsafe(64)
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "ShareSathi MVP API"
     VERSION: str = "0.2.0"
     API_V1_STR: str = "/api/v1"
 
-    # Security
-    SECRET_KEY: str = "dev-secret-change-in-production-min-32-chars!!"
+    # Security — no hardcoded fallback; random per-process in dev,
+    # MUST be set via env var / .env in production for stable sessions.
+    SECRET_KEY: str = _generate_dev_key()
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
@@ -44,10 +53,12 @@ class Settings(BaseSettings):
         import os
         env = os.getenv("ENVIRONMENT", "development")
         if env in ("production", "staging"):
-            if "dev-secret" in self.SECRET_KEY or "change" in self.SECRET_KEY.lower():
+            # In production the key MUST come from an env var, not auto-generated
+            if len(self.SECRET_KEY) < 32 or not os.getenv("SECRET_KEY"):
                 raise RuntimeError(
-                    "FATAL: SECRET_KEY contains default/dev value. "
-                    "Set a strong random SECRET_KEY env var for production."
+                    "FATAL: SECRET_KEY must be explicitly set via environment variable "
+                    "in production/staging. Generate one with: "
+                    "python -c \"import secrets; print(secrets.token_urlsafe(64))\""
                 )
             if "sqlite" in self.DATABASE_URL:
                 import logging

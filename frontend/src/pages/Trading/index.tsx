@@ -1,83 +1,54 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Wallet, AlertTriangle, Zap, LineChart, Info, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { getWallet, executeTrade, getStockBySymbol, getStockHistory } from "../../services/db";
+import { useWallet, useTrade } from "../../hooks/useTrading";
+import { useStock, useStockHistory } from "../../hooks/useMarketData";
 import { TradingChart } from "../../components/charts/TradingChart";
 import { SearchableDropdown } from "../../components/ui/SearchableDropdown";
-import type { Stock, HistoricalPrice } from "../../types";
 import SEO from '../../components/ui/SEO';
 
 export const Trading = () => {
-    const [balance, setBalance] = useState<number>(0);
     const [symbol, setSymbol] = useState("");
     const [quantity, setQuantity] = useState<number>(10);
     const [action, setAction] = useState<"BUY" | "SELL">("BUY");
     const [message, setMessage] = useState({ text: "", type: "" });
-    const [isLoading, setIsLoading] = useState(false);
-    const [history, setHistory] = useState<HistoricalPrice[] | null>(null);
-    const [stockInfo, setStockInfo] = useState<Stock | null>(null);
 
-    const fetchWallet = async () => {
-        try {
-            const wallet = await getWallet();
-            if (wallet) setBalance(wallet.balance);
-        } catch {
-            // Ignore error
-        }
-    };
+    const { data: walletData } = useWallet();
+    const balance = walletData?.balance ?? 0;
 
-    useEffect(() => {
-        fetchWallet();
-    }, []);
+    const upperSymbol = symbol.length >= 3 ? symbol.toUpperCase() : '';
+    const { data: stockInfo = null } = useStock(upperSymbol);
+    const { data: historyData } = useStockHistory(upperSymbol);
+    const history = historyData && historyData.length > 0 ? historyData : null;
 
-    useEffect(() => {
-        if (symbol.length >= 3) {
-            const fetchData = async () => {
-                const sym = symbol.toUpperCase();
-                try {
-                    const [stockRes, histRes] = await Promise.all([
-                        getStockBySymbol(sym),
-                        getStockHistory(sym),
-                    ]);
-                    setStockInfo(stockRes);
-                    setHistory(histRes.length > 0 ? histRes : null);
-                } catch {
-                    setStockInfo(null);
-                    setHistory(null);
-                }
-            };
-            const debounce = setTimeout(fetchData, 500);
-            return () => clearTimeout(debounce);
-        } else {
-            setStockInfo(null);
-            setHistory(null);
-        }
-    }, [symbol]);
+    const tradeMutation = useTrade();
+    const isLoading = tradeMutation.isPending;
 
     const handleTrade = async (e: React.FormEvent) => {
         e.preventDefault();
         setMessage({ text: "", type: "" });
-        setIsLoading(true);
 
-        try {
-            const result = await executeTrade(symbol.toUpperCase(), quantity, action);
-            if (result.success) {
-                setMessage({ text: result.message, type: "success" });
-                fetchWallet();
-                setSymbol("");
-                setQuantity(10);
-            } else {
-                setMessage({ text: result.message, type: "error" });
+        tradeMutation.mutate(
+            { symbol: symbol.toUpperCase(), quantity, action },
+            {
+                onSuccess: (result) => {
+                    if (result.success) {
+                        setMessage({ text: result.message, type: "success" });
+                        setSymbol("");
+                        setQuantity(10);
+                    } else {
+                        setMessage({ text: result.message, type: "error" });
+                    }
+                },
+                onError: () => {
+                    setMessage({
+                        text: "Failed to execute trade. Please check symbol or balance.",
+                        type: "error"
+                    });
+                },
             }
-        } catch {
-            setMessage({
-                text: "Failed to execute trade. Please check symbol or balance.",
-                type: "error"
-            });
-        } finally {
-            setIsLoading(false);
-        }
+        );
     };
 
     const estimatedCost = stockInfo ? stockInfo.ltp * quantity : 0;

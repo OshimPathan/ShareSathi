@@ -1,29 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Newspaper, Clock, ExternalLink } from 'lucide-react';
-import { getNews, getNewsCategories } from '../../services/db';
+import { useNews, useNewsCategories } from '../../hooks/useMarketData';
 import SEO from '../../components/ui/SEO';
 import PublicLayout from '../../components/layout/PublicLayout';
-import type { NewsItem } from '../../types';
 
 export const NewsPage = () => {
-    const [news, setNews] = useState<NewsItem[]>([]);
-    const [categories, setCategories] = useState<string[]>([]);
     const [activeCategory, setActiveCategory] = useState('All');
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        getNewsCategories().then(setCategories);
-    }, []);
-
-    useEffect(() => {
-        const fetchNews = async () => {
-            setLoading(true);
-            const items = await getNews(activeCategory === 'All' ? undefined : activeCategory, 30);
-            setNews(items);
-            setLoading(false);
-        };
-        fetchNews();
-    }, [activeCategory]);
+    const { data: categories = [] } = useNewsCategories();
+    const { data: news = [], isLoading: loading } = useNews(
+        activeCategory === 'All' ? undefined : activeCategory,
+        30
+    );
 
     const getCategoryColor = (category: string) => {
         const colors: Record<string, string> = {

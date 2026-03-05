@@ -905,7 +905,7 @@ src/
 
 ### 6.3 Key Patterns
 
-**Data fetching**: Direct InsForge SDK calls from service files. No React Query or SWR yet.
+**Data fetching**: React Query (`@tanstack/react-query` v5) wraps InsForge SDK calls via custom hooks in `src/hooks/useMarketData.ts` and `src/hooks/useTrading.ts`. All 11 pages use these hooks — no manual `useState`/`useEffect` for data fetching.
 
 **State management**: Zustand with persist middleware for auth, theme, i18n.
 
@@ -919,59 +919,17 @@ User → Login.tsx → insforge.auth.signIn() → authStore.login()
 
 ### 6.4 What to Upgrade
 
-#### P0: Add React Query for Data Fetching
+#### ✅ DONE: React Query Integration
 
-Right now every component manually calls InsForge and manages loading/error states. React Query gives you caching, deduplication, background refetch, and stale-while-revalidate for free.
+All 11 pages now use React Query hooks instead of manual `useState`/`useEffect`. Hooks are defined in:
+- `src/hooks/useMarketData.ts` — `useMarketSummary`, `useStocks`, `useSubIndices`, `useTopGainers`, `useTopLosers`, `useTopTurnovers`, `useMarketBundle`, `useStock`, `useStockHistory`, `useStocksBySector`, `useSearchStocks`, `useNews`, `useNewsCategories`, `useIpos`
+- `src/hooks/useTrading.ts` — `useWallet`, `usePortfolio`, `useTransactions`, `useTrade`, `useWatchlist`, `useAddToWatchlist`, `useRemoveFromWatchlist`, `useUpdateWatchlistAlerts`, `useLeaderboard`, `useUserCredits`, `useCreditPackages`, `useCreditTransactions`, `usePracticePortfolio`, `usePracticeTrades`, `usePracticeTrade`
 
-```bash
-npm install @tanstack/react-query
-```
+`QueryClientProvider` is configured in `main.tsx` with `staleTime: 60_000` and `retry: 1`.
 
-```typescript
-// src/hooks/useMarketData.ts
-import { useQuery } from '@tanstack/react-query';
-import { getMarketSummary, getAllStocks, getSubIndices } from '../services/db/market';
+#### P1: Optimistic Mutations (Next Step)
 
-export function useMarketSummary() {
-  return useQuery({
-    queryKey: ['market-summary'],
-    queryFn: getMarketSummary,
-    staleTime: 30_000,      // 30s — matches backend cache
-    refetchInterval: 60_000, // Auto-refresh every 60s
-  });
-}
-
-export function useStocks() {
-  return useQuery({
-    queryKey: ['stocks'],
-    queryFn: getAllStocks,
-    staleTime: 30_000,
-  });
-}
-```
-
-#### P1: Optimistic Mutations for Trading
-
-```typescript
-// src/hooks/useTrade.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { executeTrade } from '../services/db/trading';
-
-export function useTrade() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ symbol, quantity, action }: TradeParams) =>
-      executeTrade(symbol, quantity, action),
-    onSuccess: () => {
-      // Invalidate affected queries
-      queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-    },
-  });
-}
-```
+Current mutations invalidate caches on success. For snappier UX, add optimistic updates to `useTrade` and `useAddToWatchlist` so the UI updates instantly and rolls back on error.
 
 #### P2: Tailwind CSS Version
 
@@ -1517,7 +1475,7 @@ Monitoring Stack (free tier):
 | Launch on Nepali Facebook groups + Reddit r/Nepal | P0 | Ongoing |
 | Activate Khalti payment integration | P0 | 1 week |
 | Complete admin dashboard (user management, analytics) | P0 | 1 week |
-| Add React Query for data fetching | P1 | 3 days |
+| ~~Add React Query for data fetching~~ | ✅ Done | — |
 | WebSocket integration for live market data | P1 | 3 days |
 | Complete i18n (Nepali translations) | P1 | 2 days |
 | Add email notifications (trade confirmations) | P1 | 2 days |

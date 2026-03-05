@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import PublicLayout from "../../components/layout/PublicLayout";
 import { useAuthStore } from "../../store/authStore";
-import { getStockBySymbol, getStockHistory, getWallet, executeTrade, getStocksBySector } from "../../services/db";
+import { useStock, useStockHistory, useStocksBySector } from "../../hooks/useMarketData";
+import { useWallet, useTrade } from "../../hooks/useTrading";
 import SEO from '../../components/ui/SEO';
-import type { Stock, HistoricalPrice } from "../../types";
 import { ArrowUpRight, ArrowDownRight, Zap, BarChart3, Activity, ShieldCheck, Info, LogIn, Loader2 } from "lucide-react";
 import { StockDetailSkeleton } from "../../components/ui/Skeleton";
 import { TradingChart } from "../../components/charts/TradingChart";
@@ -16,83 +16,57 @@ import { useNotificationStore } from "../../store/notificationStore";
 export const StockDetail = () => {
     const { symbol } = useParams();
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-    const [details, setDetails] = useState<Stock | null>(null);
-    const [history, setHistory] = useState<HistoricalPrice[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [timeframe, setTimeframe] = useState<'1W' | '1M' | '3M' | '6M' | '1Y' | 'ALL'>('3M');
-    const [peers, setPeers] = useState<Stock[]>([]);
     const addNotification = useNotificationStore((s) => s.addNotification);
 
+    // React Query hooks
+    const { data: details = null, isLoading } = useStock(symbol ?? '');
+    const { data: history = [] } = useStockHistory(symbol ?? '');
+    const { data: walletData } = useWallet();
+    const { data: sectorPeers = [] } = useStocksBySector(details?.sector ?? '');
+    const peers = sectorPeers.filter(s => s.symbol !== details?.symbol).slice(0, 5);
+    const balance = walletData?.balance ?? 0;
+
     // Trading States
-    const [balance, setBalance] = useState<number>(0);
     const [quantity, setQuantity] = useState<number>(10);
     const [action, setAction] = useState<"BUY" | "SELL">("BUY");
     const [message, setMessage] = useState({ text: "", type: "" });
-    const [isTrading, setIsTrading] = useState(false);
-
-    const fetchData = async () => {
-        if (!symbol) return;
-        setIsLoading(true);
-        try {
-            const promises: Promise<unknown>[] = [
-                getStockBySymbol(symbol),
-                getStockHistory(symbol),
-            ];
-            if (isAuthenticated) promises.push(getWallet());
-            const results = await Promise.all(promises);
-            setDetails(results[0] as Stock | null);
-            setHistory(results[1] as HistoricalPrice[]);
-            if (isAuthenticated && results[2]) setBalance((results[2] as { balance: number }).balance);
-            // Fetch peers from same sector
-            const stockData = results[0] as Stock | null;
-            if (stockData?.sector) {
-                try {
-                    const sectorStocks = await getStocksBySector(stockData.sector);
-                    setPeers(sectorStocks.filter(s => s.symbol !== stockData.symbol).slice(0, 5));
-                } catch {}
-            }
-        } catch {
-            // Ignore error
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, [symbol]);
+    const tradeMutation = useTrade();
+    const isTrading = tradeMutation.isPending;
 
     const handleTrade = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!symbol) return;
 
         setMessage({ text: "", type: "" });
-        setIsTrading(true);
 
-        try {
-            const result = await executeTrade(symbol.toUpperCase(), quantity, action);
-            if (result.success) {
-                setMessage({ text: result.message, type: "success" });
-                addNotification({
-                    type: 'trade',
-                    title: `${action} ${symbol.toUpperCase()} Executed`,
-                    message: `${action === 'BUY' ? 'Bought' : 'Sold'} ${quantity} units of ${symbol.toUpperCase()} at Rs. ${currentPrice.toFixed(2)}`,
-                    actionUrl: '/portfolio',
-                });
-                const wallet = await getWallet();
-                if (wallet) setBalance(wallet.balance);
-                setQuantity(10);
-            } else {
-                setMessage({ text: result.message, type: "error" });
+        const currentPrice = Number(details?.ltp || history[history.length - 1]?.close || 0);
+
+        tradeMutation.mutate(
+            { symbol: symbol.toUpperCase(), quantity, action },
+            {
+                onSuccess: (result) => {
+                    if (result.success) {
+                        setMessage({ text: result.message, type: "success" });
+                        addNotification({
+                            type: 'trade',
+                            title: `${action} ${symbol.toUpperCase()} Executed`,
+                            message: `${action === 'BUY' ? 'Bought' : 'Sold'} ${quantity} units of ${symbol.toUpperCase()} at Rs. ${currentPrice.toFixed(2)}`,
+                            actionUrl: '/portfolio',
+                        });
+                        setQuantity(10);
+                    } else {
+                        setMessage({ text: result.message, type: "error" });
+                    }
+                },
+                onError: () => {
+                    setMessage({
+                        text: "Trade failed. Check balance or holdings.",
+                        type: "error"
+                    });
+                },
             }
-        } catch {
-            setMessage({
-                text: "Trade failed. Check balance or holdings.",
-                type: "error"
-            });
-        } finally {
-            setIsTrading(false);
-        }
+        );
     };
 
     if (isLoading) {

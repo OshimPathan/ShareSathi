@@ -1,52 +1,34 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, TrendingDown, BarChart3, Activity, Building2, RefreshCw } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { getMarketBundle, getAllStocks, getSubIndices } from '../../services/db';
+import { useMarketBundle, useStocks, useSubIndices } from '../../hooks/useMarketData';
 import SEO from '../../components/ui/SEO';
 import PublicLayout from '../../components/layout/PublicLayout';
-import type { Stock, MarketSummary, SubIndex } from '../../types';
+import type { Stock } from '../../types';
 import { MarketSkeleton } from '../../components/ui/Skeleton';
 
 type TabType = 'overview' | 'live' | 'gainers' | 'losers' | 'turnovers' | 'companies';
 
 export const MarketPage = () => {
     const [activeTab, setActiveTab] = useState<TabType>('overview');
-    const [summary, setSummary] = useState<MarketSummary | null>(null);
-    const [subIndices, setSubIndices] = useState<SubIndex[]>([]);
-    const [topGainers, setTopGainers] = useState<Stock[]>([]);
-    const [topLosers, setTopLosers] = useState<Stock[]>([]);
-    const [topTurnovers, setTopTurnovers] = useState<Stock[]>([]);
-    const [allStocks, setAllStocks] = useState<Stock[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: bundle, isLoading: bundleLoading, refetch: refetchBundle } = useMarketBundle();
+    const { data: subIndices = [], refetch: refetchIndices } = useSubIndices();
+    const { data: allStocks = [], isLoading: stocksLoading, refetch: refetchStocks } = useStocks();
     const [companySearch, setCompanySearch] = useState('');
     const [sectorFilter, setSectorFilter] = useState('All');
 
-    const fetchMarketData = async () => {
-        try {
-            const [bundle, indices, stocks] = await Promise.all([
-                getMarketBundle(),
-                getSubIndices(),
-                getAllStocks(),
-            ]);
-            if (bundle) {
-                setSummary(bundle.summary);
-                setTopGainers(bundle.topGainers);
-                setTopLosers(bundle.topLosers);
-                setTopTurnovers(bundle.topTurnovers);
-            }
-            setSubIndices(indices);
-            setAllStocks(stocks);
-        } catch (error) {
-            console.error('Failed to fetch market data', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const loading = bundleLoading || stocksLoading;
+    const summary = bundle?.summary ?? null;
+    const topGainers = bundle?.topGainers ?? [];
+    const topLosers = bundle?.topLosers ?? [];
+    const topTurnovers = bundle?.topTurnovers ?? [];
 
-    useEffect(() => {
-        fetchMarketData();
-    }, []);
+    const handleRefresh = () => {
+        refetchBundle();
+        refetchIndices();
+        refetchStocks();
+    };
 
     const tabs: { id: TabType; label: string; icon: React.ReactNode }[] = [
         { id: 'overview', label: 'Overview', icon: <BarChart3 className="w-4 h-4" /> },
@@ -96,7 +78,7 @@ export const MarketPage = () => {
                         <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${summary?.market_status === 'Open' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-slate-200 text-slate-700 border border-slate-300'}`}>
                             {summary?.market_status || 'Loading...'}
                         </span>
-                        <button onClick={fetchMarketData} className="text-mero-teal hover:text-mero-darkTeal transition-colors" title="Refresh">
+                        <button onClick={handleRefresh} className="text-mero-teal hover:text-mero-darkTeal transition-colors" title="Refresh">
                             <RefreshCw className="w-5 h-5" />
                         </button>
                     </div>

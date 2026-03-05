@@ -1,12 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Search, SlidersHorizontal, ArrowUpDown, ArrowUp, ArrowDown, X, Bookmark, TrendingUp, TrendingDown, BarChart3, Filter } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import PublicLayout from "../../components/layout/PublicLayout";
-import { getAllStocks } from "../../services/db";
+import { useStocks } from "../../hooks/useMarketData";
 import SEO from '../../components/ui/SEO';
-import type { Stock } from "../../types";
 
 type SortKey = "symbol" | "ltp" | "percentage_change" | "volume" | "turnover" | "high" | "low";
 type SortDir = "asc" | "desc";
@@ -39,8 +38,7 @@ const SECTORS = [
 ];
 
 const ScreenerPage = () => {
-  const [stocks, setStocks] = useState<Stock[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: stocks = [], isLoading: loading } = useStocks();
   const [sortKey, setSortKey] = useState<SortKey>("turnover");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showFilters, setShowFilters] = useState(false);
@@ -53,15 +51,6 @@ const ScreenerPage = () => {
     maxChange: "",
     minVolume: "",
   });
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const data = await getAllStocks();
-      setStocks(data);
-      setLoading(false);
-    })();
-  }, []);
 
   const filteredStocks = useMemo(() => {
     let result = [...stocks];

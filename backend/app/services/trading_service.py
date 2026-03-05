@@ -29,6 +29,7 @@ BROKERAGE_TIERS = [
 ]
 SEBON_FEE_RATE = Decimal("0.015")      # 0.015% SEBON regulation fee
 DP_CHARGE = Decimal("25.00")            # Rs 25 per transaction (DP charge)
+CIRCUIT_LIMIT_PCT = Decimal("10")       # ±10% daily circuit breaker (NEPSE rule)
 
 
 def calculate_brokerage(trade_amount: Decimal) -> Decimal:
@@ -93,6 +94,37 @@ class TradingService:
                 
         raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found in live market")
 
+    def _check_circuit_breaker(self, symbol: str, current_price: Decimal, previous_close: Decimal) -> None:
+        """Enforce NEPSE ±10% daily circuit breaker.
+
+        Rejects any trade where the current LTP has moved beyond ±10% from
+        the previous closing price, matching real NEPSE behaviour.
+        """
+        if previous_close <= 0:
+            return  # No previous close data — skip check
+
+        change_pct = ((current_price - previous_close) / previous_close * 100).quantize(Decimal("0.01"))
+        if abs(change_pct) > CIRCUIT_LIMIT_PCT:
+            direction = "upper" if change_pct > 0 else "lower"
+            limit_price = previous_close * (1 + CIRCUIT_LIMIT_PCT / 100) if change_pct > 0 else previous_close * (1 - CIRCUIT_LIMIT_PCT / 100)
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Circuit breaker triggered for {symbol}. "
+                    f"Price has hit the {direction} limit ({change_pct:+}% from previous close Rs. {previous_close}). "
+                    f"Trading is halted at the {direction} circuit of Rs. {limit_price.quantize(Decimal('0.01'))}."
+                ),
+            )
+
+    async def _get_previous_close(self, symbol: str) -> Decimal:
+        """Get previous close from live market data."""
+        market_data = await NepseService.get_live_market()
+        for stock in market_data.get("live_market", []):
+            if stock.get("symbol") == symbol:
+                pc = stock.get("previousClose") or stock.get("previousDayClosePrice") or 0
+                return Decimal(str(pc))
+        return Decimal("0")
+
     async def execute_buy(self, user_id: int, symbol: str, quantity: int) -> Transaction:
         if quantity <= 0:
             raise HTTPException(status_code=400, detail="Quantity must be greater than 0")
@@ -103,6 +135,11 @@ class TradingService:
         market_open = is_market_hours()
 
         price = await self._get_current_price(symbol)
+
+        # NEPSE ±10% circuit breaker
+        previous_close = await self._get_previous_close(symbol)
+        self._check_circuit_breaker(symbol, price, previous_close)
+
         trade_amount = price * quantity
 
         # Calculate fees
@@ -164,6 +201,11 @@ class TradingService:
         market_open = is_market_hours()
 
         price = await self._get_current_price(symbol)
+
+        # NEPSE ±10% circuit breaker
+        previous_close = await self._get_previous_close(symbol)
+        self._check_circuit_breaker(symbol, price, previous_close)
+
         trade_amount = price * quantity
 
         # Calculate fees

@@ -1,23 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CalendarDays, Clock, Building2, AlertCircle } from 'lucide-react';
-import { getIpos } from '../../services/db';
+import { useIpos } from '../../hooks/useMarketData';
 import SEO from '../../components/ui/SEO';
 import PublicLayout from '../../components/layout/PublicLayout';
-import type { IpoData } from '../../types';
 
 export const IpoPage = () => {
-    const [ipos, setIpos] = useState<IpoData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data: ipos = [], isLoading: loading } = useIpos();
     const [statusFilter, setStatusFilter] = useState<string>('All');
-
-    useEffect(() => {
-        const fetchIpos = async () => {
-            const data = await getIpos();
-            setIpos(data);
-            setLoading(false);
-        };
-        fetchIpos();
-    }, []);
 
     const filteredIpos = statusFilter === 'All' ? ipos : ipos.filter(ipo => ipo.status === statusFilter);
 

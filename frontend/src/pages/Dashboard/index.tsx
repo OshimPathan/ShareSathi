@@ -1,50 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown, BarChart3, Activity, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { IpoWidget } from "../../components/domain/IpoWidget";
 import OnboardingModal from "../../components/domain/OnboardingModal";
-import { getMarketBundle, getAllStocks } from "../../services/db";
+import { useMarketBundle, useStocks } from "../../hooks/useMarketData";
+import { useMarketWebSocket } from "../../hooks/useMarketWebSocket";
 import { useT } from "../../store/i18nStore";
 import SEO from '../../components/ui/SEO';
-import type { Stock, MarketSummary, SubIndex } from "../../types";
 
 export const Dashboard = () => {
     const t = useT();
-    const [summary, setSummary] = useState<MarketSummary | null>(null);
-    const [topGainers, setTopGainers] = useState<Stock[]>([]);
-    const [topLosers, setTopLosers] = useState<Stock[]>([]);
-    const [topTurnovers, setTopTurnovers] = useState<Stock[]>([]);
-    const [subIndices, setSubIndices] = useState<SubIndex[]>([]);
-    const [allStocks, setAllStocks] = useState<Stock[]>([]);
-    const [loaded, setLoaded] = useState(false);
+    useMarketWebSocket(); // auto-connect WS and push live data into React Query cache
+    const { data: bundle, isLoading: bundleLoading } = useMarketBundle();
+    const { data: allStocks = [], isLoading: stocksLoading } = useStocks();
     const [searchFilter, setSearchFilter] = useState("");
 
-    const formatCurrency = (val: number) => `Rs. ${(val / 10000000).toFixed(2)} Cr`;
+    const loaded = !bundleLoading && !stocksLoading;
+    const summary = bundle?.summary ?? null;
+    const topGainers = bundle?.topGainers ?? [];
+    const topLosers = bundle?.topLosers ?? [];
+    const topTurnovers = bundle?.topTurnovers ?? [];
+    const subIndices = bundle?.subIndices ?? [];
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const [bundle, stocks] = await Promise.all([
-                    getMarketBundle(),
-                    getAllStocks(),
-                ]);
-                if (bundle) {
-                    setSummary(bundle.summary);
-                    setTopGainers(bundle.topGainers);
-                    setTopLosers(bundle.topLosers);
-                    setTopTurnovers(bundle.topTurnovers);
-                    setSubIndices(bundle.subIndices);
-                }
-                setAllStocks(stocks);
-            } catch (err) {
-                console.error("Failed to load dashboard data:", err);
-            } finally {
-                setLoaded(true);
-            }
-        };
-        load();
-    }, []);
+    const formatCurrency = (val: number) => `Rs. ${(val / 10000000).toFixed(2)} Cr`;
 
     const filteredStocks = searchFilter
         ? allStocks.filter(s => s.symbol.toLowerCase().includes(searchFilter.toLowerCase()))

@@ -1,45 +1,29 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Wallet, TrendingUp, DollarSign, PieChart as PieChartIcon, ArrowUpRight, ArrowDownRight, RefreshCw } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
-import { getWallet, getPortfolio } from "../../services/db";
-import type { PortfolioAsset, PortfolioSummary } from "../../types";
+import { useWallet, usePortfolio } from "../../hooks/useTrading";
 import SEO from '../../components/ui/SEO';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 
 export const Portfolio = () => {
-    const [balance, setBalance] = useState<number>(0);
-    const [assets, setAssets] = useState<PortfolioAsset[]>([]);
-    const [summary, setSummary] = useState<PortfolioSummary>({
+    const { data: walletData, isLoading: walletLoading, error: walletError, refetch: refetchWallet } = useWallet();
+    const { data: portfolioData, isLoading: portfolioLoading, error: portfolioError, refetch: refetchPortfolio } = usePortfolio();
+
+    const isLoading = walletLoading || portfolioLoading;
+    const error = walletError?.message || portfolioError?.message || null;
+    const balance = walletData?.balance ?? 0;
+    const assets = portfolioData?.assets ?? [];
+    const summary = portfolioData?.summary ?? {
         total_investment: 0,
         total_current_value: 0,
         total_pnl: 0,
         overall_pnl_percentage: 0
-    });
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchData = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const [wallet, portfolio] = await Promise.all([
-                getWallet(),
-                getPortfolio()
-            ]);
-            setBalance(wallet?.balance ?? 0);
-            setAssets(portfolio.assets);
-            setSummary(portfolio.summary);
-        } catch (err: any) {
-            setError(err?.message || "Failed to load portfolio data. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    const handleRefresh = () => {
+        refetchWallet();
+        refetchPortfolio();
+    };
 
     const formatCurrency = (val: number) => `Rs. ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatPercent = (val: number) => `${val > 0 ? '+' : ''}${val.toFixed(2)}%`;
@@ -69,7 +53,7 @@ export const Portfolio = () => {
                 {isLoading ? (
                     <div className="flex items-center gap-2 text-sm text-mero-teal"><RefreshCw className="w-4 h-4 animate-spin" /> Syncing...</div>
                 ) : (
-                    <button onClick={fetchData} className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-mero-teal px-3 py-1.5 rounded-lg border border-slate-200 hover:border-mero-teal/30 transition-colors">
+                    <button onClick={handleRefresh} className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-mero-teal px-3 py-1.5 rounded-lg border border-slate-200 hover:border-mero-teal/30 transition-colors">
                         <RefreshCw className="w-3.5 h-3.5" /> Refresh
                     </button>
                 )}
@@ -78,7 +62,7 @@ export const Portfolio = () => {
             {error && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl flex justify-between items-center">
                     <span className="text-sm">{error}</span>
-                    <button onClick={fetchData} className="text-sm font-semibold text-rose-600 hover:underline ml-4">Retry</button>
+                    <button onClick={handleRefresh} className="text-sm font-semibold text-rose-600 hover:underline ml-4">Retry</button>
                 </div>
             )}
 

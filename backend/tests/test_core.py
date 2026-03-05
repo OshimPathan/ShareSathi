@@ -9,6 +9,7 @@ import pytest
 from decimal import Decimal
 from datetime import datetime, timezone, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
+from fastapi import HTTPException
 
 # ─── Brokerage Fee Tests ────────────────────────────────────
 
@@ -16,6 +17,7 @@ from app.services.trading_service import (
     calculate_brokerage,
     calculate_total_fees,
     is_market_hours,
+    CIRCUIT_LIMIT_PCT,
     NPT_OFFSET,
 )
 
@@ -166,3 +168,121 @@ class TestFeeParity:
         # First 50k at 0.36%, next 50k at 0.33%
         assert fees["brokerage"] == Decimal("345.00")  # 180 + 165
         assert fees["dp_charge"] == Decimal("25.00")
+
+
+# ─── Circuit Breaker Tests ──────────────────────────────────
+
+class TestCircuitBreaker:
+    """Test NEPSE ±10% daily circuit breaker enforcement."""
+
+    def _make_service(self):
+        """Create a TradingService with a mock DB session."""
+        from app.services.trading_service import TradingService
+        mock_db = MagicMock()
+        return TradingService(mock_db)
+
+    def test_within_circuit_no_error(self):
+        """Price within ±10% of previous close should not raise."""
+        svc = self._make_service()
+        # +5% change — should pass
+        svc._check_circuit_breaker("NABIL", Decimal("1050"), Decimal("1000"))
+
+    def test_upper_circuit_triggers(self):
+        """Price > +10% should raise HTTPException."""
+        svc = self._make_service()
+        with pytest.raises(HTTPException) as exc_info:
+            svc._check_circuit_breaker("NABIL", Decimal("1110"), Decimal("1000"))
+        assert exc_info.value.status_code == 400
+        assert "upper" in exc_info.value.detail.lower()
+
+    def test_lower_circuit_triggers(self):
+        """Price < -10% should raise HTTPException."""
+        svc = self._make_service()
+        with pytest.raises(HTTPException) as exc_info:
+            svc._check_circuit_breaker("NABIL", Decimal("890"), Decimal("1000"))
+        assert exc_info.value.status_code == 400
+        assert "lower" in exc_info.value.detail.lower()
+
+    def test_exactly_10_pct_is_allowed(self):
+        """Exactly ±10% should pass (>10% triggers, not ≥10%)."""
+        svc = self._make_service()
+        # +10% exactly
+        svc._check_circuit_breaker("NABIL", Decimal("1100"), Decimal("1000"))
+        # -10% exactly
+        svc._check_circuit_breaker("NABIL", Decimal("900"), Decimal("1000"))
+
+    def test_zero_previous_close_skips(self):
+        """If previous close is 0, skip circuit check."""
+        svc = self._make_service()
+        svc._check_circuit_breaker("NABIL", Decimal("1500"), Decimal("0"))
+
+
+# ─── Lot Size & Short Selling Tests ─────────────────────────
+
+class TestTradingRules:
+    """Test NEPSE-specific trading rules."""
+
+    def _make_service(self):
+        from app.services.trading_service import TradingService
+        mock_db = MagicMock()
+        return TradingService(mock_db)
+
+    @pytest.mark.asyncio
+    async def test_buy_rejects_zero_quantity(self):
+        """Quantity 0 should be rejected."""
+        svc = self._make_service()
+        with pytest.raises(HTTPException) as exc_info:
+            await svc.execute_buy(user_id=1, symbol="NABIL", quantity=0)
+        assert exc_info.value.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_buy_rejects_under_lot_size(self):
+        """Quantity < 10 (NEPSE min lot) should be rejected."""
+        svc = self._make_service()
+        with pytest.raises(HTTPException) as exc_info:
+            await svc.execute_buy(user_id=1, symbol="NABIL", quantity=5)
+        assert "10 shares" in exc_info.value.detail
+
+    @pytest.mark.asyncio
+    async def test_sell_rejects_under_lot_size(self):
+        """Sell quantity < 10 should be rejected."""
+        svc = self._make_service()
+        with pytest.raises(HTTPException) as exc_info:
+            await svc.execute_sell(user_id=1, symbol="NABIL", quantity=3)
+        assert "10 shares" in exc_info.value.detail
+
+
+# ─── Brokerage Tier Edge Cases ──────────────────────────────
+
+class TestBrokerageTierEdges:
+    """Test brokerage calculation at tier boundaries."""
+
+    def test_500k_boundary(self):
+        """Trade at Rs 500k spans tiers 1+2 fully."""
+        fee = calculate_brokerage(Decimal("500000"))
+        tier1 = Decimal("50000") * Decimal("0.36") / 100
+        tier2 = Decimal("450000") * Decimal("0.33") / 100
+        assert fee == (tier1 + tier2).quantize(Decimal("0.01"))
+
+    def test_large_trade_all_tiers(self):
+        """Rs 50M trade should span all five tiers."""
+        fee = calculate_brokerage(Decimal("50000000"))
+        t1 = Decimal("50000") * Decimal("0.36") / 100
+        t2 = Decimal("450000") * Decimal("0.33") / 100
+        t3 = Decimal("1500000") * Decimal("0.31") / 100
+        t4 = Decimal("8000000") * Decimal("0.27") / 100
+        t5 = Decimal("40000000") * Decimal("0.24") / 100
+        expected = (t1 + t2 + t3 + t4 + t5).quantize(Decimal("0.01"))
+        assert fee == expected
+
+    def test_one_rupee_trade(self):
+        """Tiny Rs 1 trade should return correct brokerage."""
+        fee = calculate_brokerage(Decimal("1"))
+        expected = (Decimal("1") * Decimal("0.36") / 100).quantize(Decimal("0.01"))
+        assert fee == expected
+
+    def test_total_fees_sum(self):
+        """total_fees must always equal brokerage + sebon + dp."""
+        for amount in [1, 10000, 100000, 1000000, 50000000]:
+            fees = calculate_total_fees(Decimal(str(amount)))
+            assert fees["total_fees"] == fees["brokerage"] + fees["sebon_fee"] + fees["dp_charge"]

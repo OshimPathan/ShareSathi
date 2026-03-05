@@ -3,13 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getWallet } from '../services/db/wallet';
 import { getPortfolio } from '../services/db/portfolio';
 import { executeTrade, getTransactions } from '../services/db/trading';
-import { getWatchlist, addToWatchlist, removeFromWatchlist } from '../services/db/watchlist';
+import { getWatchlist, addToWatchlist, removeFromWatchlist, updateWatchlistAlerts } from '../services/db/watchlist';
 import { getLeaderboard } from '../services/db/leaderboard';
 import {
   getUserCredits,
   getCreditPackages,
   getCreditTransactions,
   getPracticePortfolio,
+  getPracticeTrades,
+  executePracticeTrade,
 } from '../services/db/credits';
 
 // ── Wallet ──────────────────────────────────────────────────
@@ -137,5 +139,43 @@ export function usePracticePortfolio() {
     queryKey: ['practice-portfolio'],
     queryFn: getPracticePortfolio,
     staleTime: 10_000,
+  });
+}
+
+// ── Watchlist Alerts ────────────────────────────────────────
+
+export function useUpdateWatchlistAlerts() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ symbol, targetPrice, stopLoss }: { symbol: string; targetPrice: number | null; stopLoss: number | null }) =>
+      updateWatchlistAlerts(symbol, targetPrice, stopLoss),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+    },
+  });
+}
+
+// ── Practice Trading ────────────────────────────────────────
+
+export function usePracticeTrades() {
+  return useQuery({
+    queryKey: ['practice-trades'],
+    queryFn: getPracticeTrades,
+    staleTime: 10_000,
+  });
+}
+
+export function usePracticeTrade() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ symbol, quantity, action }: { symbol: string; quantity: number; action: 'BUY' | 'SELL' }) =>
+      executePracticeTrade(symbol, quantity, action),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['practice-portfolio'] });
+      queryClient.invalidateQueries({ queryKey: ['practice-trades'] });
+      queryClient.invalidateQueries({ queryKey: ['user-credits'] });
+    },
   });
 }

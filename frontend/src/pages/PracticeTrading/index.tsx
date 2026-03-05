@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Coins,
@@ -22,14 +22,9 @@ import { Button } from '../../components/ui/Button';
 import SEO from '../../components/ui/SEO';
 import { SearchableDropdown } from '../../components/ui/SearchableDropdown';
 import { useCreditStore } from '../../store/creditStore';
-import {
-  executePracticeTrade,
-  getPracticePortfolio,
-  getPracticeTrades,
-  estimateFees,
-  getStockBySymbol,
-} from '../../services/db';
-import type { Stock, PortfolioAsset, PracticeTrade } from '../../types';
+import { usePracticePortfolio, usePracticeTrades, usePracticeTrade } from '../../hooks/useTrading';
+import { useStock } from '../../hooks/useMarketData';
+import { estimateFees } from '../../services/db';
 
 // ── Tutorial Steps ──
 const TUTORIAL_STEPS = [
@@ -64,59 +59,45 @@ const PracticeTradingPage = () => {
 
   // Trade form state
   const [selectedSymbol, setSelectedSymbol] = useState('');
-  const [stockInfo, setStockInfo] = useState<Stock | null>(null);
   const [quantity, setQuantity] = useState(10);
   const [action, setAction] = useState<'BUY' | 'SELL'>('BUY');
-  const [isTrading, setIsTrading] = useState(false);
   const [tradeResult, setTradeResult] = useState<{ success: boolean; message: string } | null>(null);
-
-  // Portfolio & history
-  const [portfolio, setPortfolio] = useState<PortfolioAsset[]>([]);
-  const [trades, setTrades] = useState<PracticeTrade[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [showTutorial, setShowTutorial] = useState(true);
   const [activeTab, setActiveTab] = useState<'trade' | 'portfolio' | 'history'>('trade');
 
-  // Load portfolio and trades
-  const fetchData = async () => {
-    setIsLoading(true);
-    const [p, t] = await Promise.all([getPracticePortfolio(), getPracticeTrades()]);
-    setPortfolio(p);
-    setTrades(t);
-    setIsLoading(false);
-    await refreshBalance();
+  // React Query hooks
+  const { data: stockInfo = null } = useStock(selectedSymbol);
+  const { data: portfolio = [], isLoading: portfolioLoading, refetch: refetchPortfolio } = usePracticePortfolio();
+  const { data: trades = [], isLoading: tradesLoading, refetch: refetchTrades } = usePracticeTrades();
+  const practiceTradeMutation = usePracticeTrade();
+  const isTrading = practiceTradeMutation.isPending;
+  const isLoading = portfolioLoading || tradesLoading;
+
+  const handleRefresh = () => {
+    refetchPortfolio();
+    refetchTrades();
+    refreshBalance();
   };
-
-  useEffect(() => {
-    fetchData();
-    // Dismiss tutorial if user has traded before
-    if (trades.length > 0) setShowTutorial(false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Load stock info when symbol changes
-  useEffect(() => {
-    if (!selectedSymbol) {
-      setStockInfo(null);
-      return;
-    }
-    getStockBySymbol(selectedSymbol).then((s) => setStockInfo(s));
-  }, [selectedSymbol]);
 
   const estimatedCost = stockInfo ? stockInfo.ltp * quantity : 0;
   const fees = useMemo(() => estimateFees(estimatedCost), [estimatedCost]);
 
   const handleTrade = async () => {
     if (!selectedSymbol || quantity <= 0) return;
-    setIsTrading(true);
     setTradeResult(null);
 
-    const result = await executePracticeTrade(selectedSymbol, quantity, action);
-    setTradeResult(result);
-
-    if (result.success) {
-      fetchData();
-    }
-    setIsTrading(false);
+    practiceTradeMutation.mutate(
+      { symbol: selectedSymbol, quantity, action },
+      {
+        onSuccess: (result) => {
+          setTradeResult(result);
+          if (result.success) refreshBalance();
+        },
+        onError: () => {
+          setTradeResult({ success: false, message: 'Trade failed. Please try again.' });
+        },
+      }
+    );
   };
 
   // Portfolio summary
@@ -475,7 +456,7 @@ const PracticeTradingPage = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Practice Portfolio</CardTitle>
-            <button onClick={fetchData} className="text-xs text-slate-500 hover:text-mero-teal flex items-center gap-1">
+            <button onClick={handleRefresh} className="text-xs text-slate-500 hover:text-mero-teal flex items-center gap-1">
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
             </button>
           </CardHeader>

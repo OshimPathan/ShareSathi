@@ -266,6 +266,46 @@ async def fetch_and_sync_history(client: httpx.AsyncClient, symbols: Optional[Li
 # ===========================================================================
 # 3. Real News Scraping  (ShareSansar)
 # ===========================================================================
+
+async def _fetch_article_details(client: httpx.AsyncClient, url: str) -> dict:
+    """Fetch image and content from a single article page."""
+    result = {"image_url": None, "content": None}
+    if not url:
+        return result
+    try:
+        resp = await client.get(url, headers={
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }, timeout=10, follow_redirects=True)
+        if resp.status_code != 200:
+            return result
+        soup = BeautifulSoup(resp.text, "lxml")
+
+        # Extract og:image (most reliable)
+        og = soup.find("meta", property="og:image")
+        if og and og.get("content"):
+            result["image_url"] = og["content"]
+        else:
+            # Fallback: first large image in article body
+            for img in soup.select("article img, .news-detail img, .post-content img, .featured-image img"):
+                src = img.get("src", "")
+                if src and ("sharesansar" in src or "merolagani" in src or src.startswith("http")):
+                    result["image_url"] = src
+                    break
+
+        # Extract article body text
+        body = soup.select_one("article .post-content, .news-detail-content, .news-content, article .entry-content, .article-body")
+        if body:
+            # Remove scripts and styles
+            for tag in body.find_all(["script", "style", "iframe", "ins"]):
+                tag.decompose()
+            text = body.get_text(separator="\n", strip=True)
+            # Limit to ~2000 chars
+            result["content"] = text[:2000] if text else None
+    except Exception as e:
+        log.debug(f"  Article detail fetch failed for {url}: {e}")
+    return result
+
+
 async def fetch_and_sync_news(client: httpx.AsyncClient):
     """Scrape real financial news from ShareSansar and push to InsForge."""
     log.info("⏳ Scraping news from ShareSansar...")
@@ -303,6 +343,14 @@ async def fetch_and_sync_news(client: httpx.AsyncClient):
                 if href and not href.startswith("http"):
                     href = f"https://www.sharesansar.com{href}"
 
+                # Try to get thumbnail from listing page
+                image_url = None
+                parent = a.find_parent("div") or a.find_parent("li")
+                if parent:
+                    img = parent.find("img")
+                    if img:
+                        image_url = img.get("data-src") or img.get("src") or None
+
                 news_items.append({
                     "title": title[:500],
                     "category": category,
@@ -310,6 +358,7 @@ async def fetch_and_sync_news(client: httpx.AsyncClient):
                     "published_at": datetime.now().isoformat(),
                     "url": href,
                     "content": title,
+                    "image_url": image_url,
                 })
         except Exception as e:
             log.warning(f"  ShareSansar {category} error: {e}")
@@ -329,6 +378,15 @@ async def fetch_and_sync_news(client: httpx.AsyncClient):
                 if title and len(title) > 10 and title not in {n["title"] for n in news_items}:
                     if href and not href.startswith("http"):
                         href = f"https://merolagani.com/{href.lstrip('/')}"
+
+                    # Try to get thumbnail from listing
+                    image_url = None
+                    parent = a.find_parent("div") or a.find_parent("li")
+                    if parent:
+                        img = parent.find("img")
+                        if img:
+                            image_url = img.get("data-src") or img.get("src") or None
+
                     news_items.append({
                         "title": title[:500],
                         "category": "Market",
@@ -336,6 +394,7 @@ async def fetch_and_sync_news(client: httpx.AsyncClient):
                         "published_at": datetime.now().isoformat(),
                         "url": href,
                         "content": title,
+                        "image_url": image_url,
                     })
     except Exception as e:
         log.warning(f"  MeroLagani news error: {e}")
@@ -348,6 +407,22 @@ async def fetch_and_sync_news(client: httpx.AsyncClient):
             if n["title"] not in seen:
                 seen.add(n["title"])
                 unique.append(n)
+
+        # Fetch article details (image + content) for items missing images
+        # Process in batches of 5 to avoid hammering servers
+        items_needing_details = [n for n in unique if not n.get("image_url") and n.get("url")]
+        log.info(f"  Fetching article details for {len(items_needing_details)} items...")
+        for i in range(0, len(items_needing_details), 5):
+            batch = items_needing_details[i:i+5]
+            tasks = [_fetch_article_details(client, n["url"]) for n in batch]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for n, res in zip(batch, results):
+                if isinstance(res, dict):
+                    if res.get("image_url"):
+                        n["image_url"] = res["image_url"]
+                    if res.get("content") and len(res["content"]) > len(n.get("content", "")):
+                        n["content"] = res["content"]
+
         res = await call_rpc(client, "sync_news", {"data": unique})
         log.info(f"📰 News synced ({len(unique)} articles): {res}")
     else:
